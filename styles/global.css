@@ -11,7 +11,7 @@
 } */
 
 /* Disable input and textarea focus outline. */
-/* input:focus,
+input:focus,
 textarea:focus {
   outline: none;
-} */
+}

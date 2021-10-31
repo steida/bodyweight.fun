@@ -1,33 +1,28 @@
-import type { NextPage } from 'next';
 import { useIntl } from 'react-intl';
-import { StyleSheet, Text, View } from 'react-native';
+import { View } from 'react-native';
+import { CreateWorkoutForm } from '../components/CreateWorkoutForm';
 import { Title } from '../components/Title';
+import { WorkoutsList } from '../components/WorkoutsList';
+import { useTheme } from '../contexts/ThemeContext';
 
-const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    flexGrow: 1,
-    justifyContent: 'center',
-  },
-  text: {
-    fontSize: 24,
-  },
-});
-
-const Home: NextPage = () => {
+const Home = () => {
   const intl = useIntl();
+  const t = useTheme();
 
   return (
-    <View style={styles.container}>
+    <>
       <Title
         title={intl.formatMessage({
           defaultMessage: 'Your calisthenics trainer',
         })}
       />
-      <Text style={styles.text}>
-        {intl.formatMessage({ defaultMessage: 'Soon' })}
-      </Text>
-    </View>
+      <View style={[t.justifyCenter, t.itemsCenter, t.flexGrow]}>
+        <WorkoutsList />
+        <View style={t.mt}>
+          <CreateWorkoutForm />
+        </View>
+      </View>
+    </>
   );
 };
 

@@ -6,25 +6,37 @@ import {
   useContext,
   useContextSelector,
 } from 'use-context-selector';
+import { NanoID } from '../codecs/branded';
+import { Workout } from '../codecs/domain';
 import { useStorage } from '../hooks/useStorage';
 
 export interface AppState {
-  foo: string | null;
+  workouts: ReadonlyArray<Workout>;
 }
 
-type AppAction = {
-  type: 'rehydrate';
-};
+type AppAction =
+  | { type: 'createWorkout'; workout: Workout }
+  | { type: 'deleteWorkout'; id: NanoID }
+  | {
+      type: 'rehydrate';
+    };
 
 const reducer: Reducer<AppState, AppAction> = (state, action) => {
   switch (action.type) {
+    case 'createWorkout':
+      return { ...state, workouts: [...state.workouts, action.workout] };
+    case 'deleteWorkout':
+      return {
+        ...state,
+        workouts: state.workouts.filter((w) => w.id !== action.id),
+      };
     case 'rehydrate':
       return { ...state };
   }
 };
 
 const initialState: AppState = {
-  foo: null,
+  workouts: [],
 };
 
 const AppStateContext = createContext<AppState>(initialState);

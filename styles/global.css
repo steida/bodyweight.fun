@@ -1,0 +1,17 @@
+/* Force Next-generated DOM elements to fill their parent's height. */
+#__next {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* https://stackoverflow.com/a/62624824/233902 */
+/* input:-webkit-autofill {
+  background-clip: text;
+} */
+
+/* Disable input and textarea focus outline. */
+/* input:focus,
+textarea:focus {
+  outline: none;
+} */

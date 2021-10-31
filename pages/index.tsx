@@ -1,6 +1,7 @@
 import type { NextPage } from 'next';
 import { useIntl } from 'react-intl';
 import { StyleSheet, Text, View } from 'react-native';
+import { Title } from '../components/Title';
 
 const styles = StyleSheet.create({
   container: {
@@ -18,6 +19,11 @@ const Home: NextPage = () => {
 
   return (
     <View style={styles.container}>
+      <Title
+        title={intl.formatMessage({
+          defaultMessage: 'Your calisthenics trainer',
+        })}
+      />
       <Text style={styles.text}>
         {intl.formatMessage({ defaultMessage: 'Soon' })}
       </Text>

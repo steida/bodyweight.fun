@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 module.exports = {
   reactStrictMode: false,
+  devIndicators: {
+    buildActivity: false,
+  },
   webpack: (config) => {
     config.resolve.alias = {
       ...(config.resolve.alias || {}),

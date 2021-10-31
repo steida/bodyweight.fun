@@ -1,12 +1,23 @@
+import * as Fathom from 'fathom-client';
 import type { AppProps } from 'next/app';
-import { IntlProvider } from 'react-intl';
 import Head from 'next/head';
-import '../styles/global.css';
+import Router from 'next/router';
+import { useEffect } from 'react';
+import { IntlProvider } from 'react-intl';
 import { Layout } from '../components/Layout';
-import { ThemeProvider } from '../contexts/ThemeContext';
 import { AppStateProvider } from '../contexts/AppStateContext';
+import { ThemeProvider } from '../contexts/ThemeContext';
+import '../styles/global.css';
 
-function MyApp({ Component, pageProps }: AppProps) {
+Router.events.on('routeChangeComplete', () => {
+  Fathom.trackPageview();
+});
+
+const MyApp = ({ Component, pageProps }: AppProps) => {
+  useEffect(() => {
+    Fathom.load('KMFMXCNL', { includedDomains: ['www.bodyweight.fun'] });
+  }, []);
+
   return (
     <AppStateProvider>
       <ThemeProvider>
@@ -45,6 +56,6 @@ function MyApp({ Component, pageProps }: AppProps) {
       </ThemeProvider>
     </AppStateProvider>
   );
-}
+};
 
 export default MyApp;

@@ -20,10 +20,7 @@ const Home = () => {
         style={[
           t.itemsCenter,
           t.justifyCenter,
-          // height: 100vh is tricky with iOS Safari <15 but
-          // it seems it works well with Safari 15.
-          // https://medium.com/rbi-tech/safaris-100vh-problem-3412e6f13716
-          // Nothing is cropped.
+          // https://twitter.com/estejs/status/1455272409385340936
           { minHeight: '100vh' },
         ]}
       >

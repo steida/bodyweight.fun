@@ -23,11 +23,24 @@ export default class MyDocument extends Document {
     return { ...page, styles: Children.toArray(styles) };
   }
 
+  // RNfW documentation recommends height: '100%' to mimic native
+  // device, but it requires ScrollView with flex: 1 which:
+  // 1) Makes desktop scroll animation ugly in Chrome.
+  // 2) Breaks Safari 15 rendering via wrong body height which
+  //    makes screen cropped by navigation bar sometimes.
+  //    It's well described problem for Safari < 15 and still
+  //    buggy OK with Safari 15.
+  // That's why can't use height: '100%'.
+  // https://samuelkraft.com/blog/safari-15-bottom-tab-bars-web
+  // Luckily, RNfW does need ScrollView anymore.
+  // Fixed bottom bar via position: 'fixed', bottom: 0 works well
+  // as I manually tested on Safari 15 normal and full-screen modes.
+
   render() {
     return (
-      <Html lang="en" style={{ height: '100%' }}>
+      <Html lang="en">
         <Head />
-        <body style={{ height: '100%', overflow: 'hidden' }}>
+        <body>
           <Main />
           <NextScript />
         </body>

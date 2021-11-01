@@ -16,11 +16,19 @@ const Home = () => {
           defaultMessage: 'Your calisthenics trainer',
         })}
       />
-      <View style={[t.justifyCenter, t.itemsCenter, t.flexGrow]}>
+      <View
+        style={[
+          t.itemsCenter,
+          t.justifyCenter,
+          // height: 100vh is tricky with iOS Safari <15 but
+          // it seems it works well with Safari 15.
+          // https://medium.com/rbi-tech/safaris-100vh-problem-3412e6f13716
+          // Nothing is cropped.
+          { minHeight: '100vh' },
+        ]}
+      >
         <WorkoutsList />
-        <View style={t.mt}>
-          <CreateWorkoutForm />
-        </View>
+        <CreateWorkoutForm />
       </View>
     </>
   );

@@ -6,9 +6,10 @@ import {
   useContext,
   useContextSelector,
 } from 'use-context-selector';
-import { NanoID } from '../codecs/branded';
+import { NanoID, String32 } from '../codecs/branded';
 import { Workout } from '../codecs/domain';
 import { useStorage } from '../hooks/useStorage';
+import { createNanoID } from '../utils/createNanoID';
 
 export interface AppState {
   workouts: ReadonlyArray<Workout>;
@@ -36,7 +37,14 @@ const reducer: Reducer<AppState, AppAction> = (state, action) => {
 };
 
 const initialState: AppState = {
-  workouts: [],
+  workouts: [
+    { id: createNanoID(), createdAt: new Date(), name: 'Short' as String32 },
+    // { id: createNanoID(), createdAt: new Date(), name: 'Short' as String32 },
+    // { id: createNanoID(), createdAt: new Date(), name: 'Short' as String32 },
+    // { id: createNanoID(), createdAt: new Date(), name: 'Short' as String32 },
+    // { id: createNanoID(), createdAt: new Date(), name: 'Short' as String32 },
+    // { id: createNanoID(), createdAt: new Date(), name: 'Short' as String32 },
+  ],
 };
 
 const AppStateContext = createContext<AppState>(initialState);

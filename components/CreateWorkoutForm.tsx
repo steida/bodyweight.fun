@@ -1,4 +1,5 @@
 import { either } from 'fp-ts';
+import * as Fathom from 'fathom-client';
 import { pipe } from 'fp-ts/function';
 import { useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -38,6 +39,7 @@ const CreateWorkoutFormModal = ({
           textFieldRef.current?.focus();
         },
         (name) => {
+          Fathom.trackGoal('8NAL5VZS', 0);
           appDispatch({
             type: 'createWorkout',
             workout: {
@@ -89,6 +91,7 @@ export const CreateWorkoutForm = () => {
   const [isEdited, setIsEdited] = useState(false);
 
   const handleCreateWorkoutPress = () => {
+    Fathom.trackGoal('IBXUJQUK', 0);
     setIsEdited(true);
   };
 
@@ -101,8 +104,6 @@ export const CreateWorkoutForm = () => {
       <PrimaryButton
         title={intl.formatMessage({ defaultMessage: 'Create Workout' })}
         onPress={handleCreateWorkoutPress}
-        // style={{ opac }}
-        // disabled={isEdited}
       />
       {isEdited && (
         <CreateWorkoutFormModal onRequestClose={handleRequestClose} />

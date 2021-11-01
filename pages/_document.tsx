@@ -29,12 +29,9 @@ export default class MyDocument extends Document {
   // 2) Breaks Safari 15 rendering via wrong body height which
   //    makes screen cropped by navigation bar sometimes.
   //    It's well described problem for Safari < 15 and still
-  //    buggy OK with Safari 15.
+  //    buggy with Safari 15.
   // That's why can't use height: '100%'.
-  // https://samuelkraft.com/blog/safari-15-bottom-tab-bars-web
-  // Luckily, RNfW does need ScrollView anymore.
-  // Fixed bottom bar via position: 'fixed', bottom: 0 works well
-  // as I manually tested on Safari 15 normal and full-screen modes.
+  // https://twitter.com/estejs/status/1455272407179177986
 
   render() {
     return (

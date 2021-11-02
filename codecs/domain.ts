@@ -8,3 +8,5 @@ export const Workout = struct({
   name: String32,
 });
 export type Workout = TypeOf<typeof Workout>;
+
+// TODO: UrlWorkout, no id nor createdAt, optimized for sharing

@@ -7,6 +7,7 @@ import { IntlProvider } from 'react-intl';
 import { Layout } from '../components/Layout';
 import { AppStateProvider } from '../contexts/AppStateContext';
 import { ThemeProvider } from '../contexts/ThemeContext';
+import { storageKey } from '../hooks/useStorage';
 import '../styles/global.css';
 
 Router.events.on('routeChangeComplete', () => {
@@ -23,6 +24,14 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
       <ThemeProvider>
         <IntlProvider locale="en">
           <Head>
+            <script
+              // We can't use Next.js Script. Better approach is planned.
+              // https://github.com/vercel/next.js/issues/26343
+              dangerouslySetInnerHTML={{
+                __html: `localStorage.getItem('${storageKey}')&&document.documentElement.classList.add('loading')`,
+              }}
+            />
+            ;``
             <meta
               name="description"
               content="A simple app to manage your calisthenics workouts."

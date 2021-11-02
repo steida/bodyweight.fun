@@ -15,3 +15,7 @@ input:focus,
 textarea:focus {
   outline: none;
 }
+
+.loading div[data-loading='hidden'] {
+  visibility: hidden;
+}

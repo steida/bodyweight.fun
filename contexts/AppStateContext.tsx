@@ -1,6 +1,14 @@
 import { either } from 'fp-ts';
 import { constVoid } from 'fp-ts/function';
-import { Dispatch, FC, Reducer, useEffect, useReducer } from 'react';
+import {
+  Dispatch,
+  FC,
+  Reducer,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+} from 'react';
 import {
   createContext,
   useContext,
@@ -8,22 +16,27 @@ import {
 } from 'use-context-selector';
 import { NanoID, String32 } from '../codecs/branded';
 import { Workout } from '../codecs/domain';
-import { useStorage } from '../hooks/useStorage';
+import { StorageState, useStorage } from '../hooks/useStorage';
 import { createNanoID } from '../utils/createNanoID';
 
 export interface AppState {
+  isRehydrated: boolean;
   workouts: ReadonlyArray<Workout>;
 }
 
 type AppAction =
   | { type: 'createWorkout'; workout: Workout }
   | { type: 'deleteWorkout'; id: NanoID }
-  | {
-      type: 'rehydrate';
-    };
+  | { type: 'rehydrated'; workouts?: ReadonlyArray<Workout> };
 
 const reducer: Reducer<AppState, AppAction> = (state, action) => {
   switch (action.type) {
+    case 'rehydrated':
+      return {
+        ...state,
+        isRehydrated: true,
+        workouts: action.workouts || state.workouts,
+      };
     case 'createWorkout':
       return { ...state, workouts: [...state.workouts, action.workout] };
     case 'deleteWorkout':
@@ -31,12 +44,11 @@ const reducer: Reducer<AppState, AppAction> = (state, action) => {
         ...state,
         workouts: state.workouts.filter((w) => w.id !== action.id),
       };
-    case 'rehydrate':
-      return { ...state };
   }
 };
 
 const initialState: AppState = {
+  isRehydrated: false,
   workouts: [
     { id: createNanoID(), createdAt: new Date(), name: 'Short' as String32 },
     // { id: createNanoID(), createdAt: new Date(), name: 'Short' as String32 },
@@ -57,19 +69,45 @@ export const useAppDispatch = () => useContext(AppDispatchContext);
 
 export const AppStateProvider: FC = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
-  const storage = useStorage();
+
+  const storage = useStorage(
+    either.match(
+      (e) => {
+        // An error can happen if the code is wrong so log it in dev mode.
+        if (
+          process.env.NODE_ENV === 'development' &&
+          e.error.type !== 'getItemReturnsNull'
+        )
+          // eslint-disable-next-line no-console
+          console.log(e);
+        dispatch({ type: 'rehydrated' });
+      },
+      ({ workouts }) => {
+        dispatch({ type: 'rehydrated', workouts });
+      },
+    ),
+  );
+
+  const storageState: StorageState = useMemo(
+    () => ({ workouts: state.workouts }),
+    [state.workouts],
+  );
+
+  // https://twitter.com/estejs/status/1455313999902433283
+  const prevStorageState = useRef(storageState);
+  useEffect(() => {
+    if (prevStorageState.current !== storageState) {
+      prevStorageState.current = storageState;
+      if (!state.isRehydrated) return;
+      // Fire and forget, we don't care about errors nor result.
+      storage.set(storageState)();
+    }
+  });
 
   useEffect(() => {
-    storage.get().then(
-      either.match(
-        // We don't handle storage errors because there isn't much we can do.
-        constVoid,
-        () => {
-          dispatch({ type: 'rehydrate' });
-        },
-      ),
-    );
-  }, [dispatch, storage]);
+    if (state.isRehydrated)
+      document.documentElement.classList.remove('loading');
+  }, [state.isRehydrated]);
 
   return (
     <AppStateContext.Provider value={state}>

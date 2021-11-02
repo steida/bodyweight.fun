@@ -17,6 +17,8 @@ const Home = () => {
         })}
       />
       <View
+        // @ts-expect-error RNfW
+        dataSet={{ loading: 'hidden' }}
         style={[
           t.itemsCenter,
           t.justifyCenter,

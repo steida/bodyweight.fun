@@ -1,9 +1,9 @@
-import { either } from 'fp-ts';
 import * as Fathom from 'fathom-client';
+import { either } from 'fp-ts';
 import { pipe } from 'fp-ts/function';
 import { useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { Modal, View } from 'react-native';
+import { View } from 'react-native';
 import { MaxLength, String32 } from '../codecs/branded';
 import { CancelButton } from '../components/buttons/CancelButton';
 import { PrimaryButton } from '../components/buttons/PrimaryButton';
@@ -12,7 +12,7 @@ import { useAppDispatch } from '../contexts/AppStateContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useIosScrollFix } from '../hooks/useIosScrollFix';
 import { createNanoID } from '../utils/createNanoID';
-import { InsetBorder } from './InsetBorder';
+import { Modal } from './Modal';
 
 const CreateWorkoutFormModal = ({
   onRequestClose,
@@ -57,28 +57,25 @@ const CreateWorkoutFormModal = ({
   const iosScrollFix = useIosScrollFix();
 
   return (
-    <Modal transparent visible>
-      <View style={[t.flexGrow, t.justifyCenter, t.itemsCenter]}>
-        <View style={[t.wLg_10x, t.pv, t.phXXL, t.bgColor, t.bgColor, t._top]}>
-          <InsetBorder style={t.shadow} />
-          <TextField
-            autoFocus
-            maxLength={MaxLength['32']}
-            label={intl.formatMessage({ defaultMessage: 'Workout Name' })}
-            value={name}
-            onChangeText={setName}
-            onSubmitEditing={submit}
-            ref={textFieldRef}
-            blurOnSubmit={false}
-            style={iosScrollFix}
+    <Modal contentStyle={t._top} onRequestClose={onRequestClose}>
+      <View style={t.phXL}>
+        <TextField
+          autoFocus
+          maxLength={MaxLength['32']}
+          label={intl.formatMessage({ defaultMessage: 'Workout Name' })}
+          value={name}
+          onChangeText={setName}
+          onSubmitEditing={submit}
+          ref={textFieldRef}
+          blurOnSubmit={false}
+          style={iosScrollFix}
+        />
+        <View style={[t.flexRow, t.justifyAround]}>
+          <CancelButton onPress={handleCancelPress} />
+          <PrimaryButton
+            title={intl.formatMessage({ defaultMessage: 'Create' })}
+            onPress={submit}
           />
-          <View style={[t.flexRow, t.justifyAround]}>
-            <CancelButton onPress={handleCancelPress} />
-            <PrimaryButton
-              title={intl.formatMessage({ defaultMessage: 'Create' })}
-              onPress={submit}
-            />
-          </View>
         </View>
       </View>
     </Modal>

@@ -1,41 +1,58 @@
-import { memo } from 'react';
+import { memo, useCallback, useState } from 'react';
 import { Pressable, Text } from 'react-native';
 import stc from 'string-to-color';
+import { NanoID } from '../codecs/branded';
 import { Workout } from '../codecs/domain';
-import { useAppDispatch, useAppState } from '../contexts/AppStateContext';
+import { useAppState } from '../contexts/AppStateContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { InsetBorder } from './InsetBorder';
+import { WorkoutDetail } from './WorkoutDetail';
 
-const WorkoutItem = memo<{ workout: Workout }>(({ workout }) => {
-  const t = useTheme();
-  const appDispatch = useAppDispatch();
+const WorkoutItem = memo<{ workout: Workout; onPress: (id: NanoID) => void }>(
+  ({ workout, onPress }) => {
+    const t = useTheme();
 
-  const handlePress = () => {
-    appDispatch({ type: 'deleteWorkout', id: workout.id });
-  };
-
-  return (
-    <Pressable
-      style={[t.mvSm, t.p]}
-      accessibilityRole="button"
-      onPress={handlePress}
-    >
-      <InsetBorder style={[t.shadow, { shadowColor: stc(workout.name) }]} />
-      <Text selectable={false} style={[t.text, t.color]}>
-        {workout.name}
-      </Text>
-    </Pressable>
-  );
-});
+    return (
+      <Pressable
+        style={[t.mvSm, t.p]}
+        accessibilityRole="button"
+        onPress={() => {
+          onPress(workout.id);
+        }}
+      >
+        <InsetBorder style={[t.shadow, { shadowColor: stc(workout.name) }]} />
+        <Text selectable={false} style={[t.text, t.color]}>
+          {workout.name}
+        </Text>
+      </Pressable>
+    );
+  },
+);
 
 export const WorkoutsList = () => {
   const workouts = useAppState((s) => s.workouts);
 
+  const [shownWorkoutID, setShownWorkoutID] = useState<NanoID | null>(null);
+
+  const handleWorkoutPress = useCallback((id: NanoID) => {
+    setShownWorkoutID(id);
+  }, []);
+
+  const handleWorkoutDetailClose = useCallback(() => {
+    setShownWorkoutID(null);
+  }, []);
+
   return (
     <>
       {workouts.map((w) => (
-        <WorkoutItem workout={w} key={w.id} />
+        <WorkoutItem workout={w} key={w.id} onPress={handleWorkoutPress} />
       ))}
+      {shownWorkoutID && (
+        <WorkoutDetail
+          id={shownWorkoutID}
+          onRequestClose={handleWorkoutDetailClose}
+        />
+      )}
     </>
   );
 };

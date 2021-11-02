@@ -5,7 +5,6 @@ import { useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { View } from 'react-native';
 import { MaxLength, String32 } from '../codecs/branded';
-import { CancelButton } from '../components/buttons/CancelButton';
 import { PrimaryButton } from '../components/buttons/PrimaryButton';
 import { TextField, TextFieldRef } from '../components/fields/TextField';
 import { useAppDispatch } from '../contexts/AppStateContext';
@@ -23,10 +22,6 @@ const CreateWorkoutFormModal = ({
   const t = useTheme();
 
   const [name, setName] = useState('');
-
-  const handleCancelPress = () => {
-    onRequestClose();
-  };
 
   const textFieldRef = useRef<TextFieldRef>(null);
   const appDispatch = useAppDispatch();
@@ -71,7 +66,6 @@ const CreateWorkoutFormModal = ({
           style={iosScrollFix}
         />
         <View style={[t.flexRow, t.justifyAround]}>
-          <CancelButton onPress={handleCancelPress} />
           <PrimaryButton
             title={intl.formatMessage({ defaultMessage: 'Create' })}
             onPress={submit}

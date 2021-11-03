@@ -12,8 +12,6 @@ import {
 import { useTheme } from '../contexts/ThemeContext';
 import { InsetBorder } from './InsetBorder';
 
-// type A = ModalProps['con']
-
 export const Modal: FC<
   ModalProps & {
     contentStyle?: StyleProp<ViewStyle>;

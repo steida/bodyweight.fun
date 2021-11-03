@@ -50,8 +50,8 @@ const CreateWorkoutFormModal = ({
   };
 
   return (
-    <Modal contentStyle={t._top} onRequestClose={onRequestClose}>
-      <View style={t.shortTextInput}>
+    <Modal onRequestClose={onRequestClose}>
+      <View style={t.width12}>
         <TextField
           autoFocus
           maxLength={MaxLength['32']}

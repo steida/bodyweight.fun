@@ -1,5 +1,6 @@
 import { either } from 'fp-ts';
-import { constVoid } from 'fp-ts/function';
+import { constVoid, pipe } from 'fp-ts/function';
+import { lens, optional } from 'monocle-ts';
 import {
   Dispatch,
   FC,
@@ -25,9 +26,10 @@ export interface AppState {
 }
 
 type AppAction =
+  | { type: 'rehydrated'; workouts?: ReadonlyArray<Workout> }
   | { type: 'createWorkout'; workout: Workout }
   | { type: 'deleteWorkout'; id: NanoID }
-  | { type: 'rehydrated'; workouts?: ReadonlyArray<Workout> };
+  | { type: 'updateWorkoutName'; id: NanoID; value: String32 };
 
 const reducer: Reducer<AppState, AppAction> = (state, action) => {
   switch (action.type) {
@@ -44,6 +46,13 @@ const reducer: Reducer<AppState, AppAction> = (state, action) => {
         ...state,
         workouts: state.workouts.filter((w) => w.id !== action.id),
       };
+    case 'updateWorkoutName':
+      return pipe(
+        lens.id<AppState>(),
+        lens.prop('workouts'),
+        lens.findFirst((w) => w.id === action.id),
+        optional.prop('name'),
+      ).set(action.value)(state);
   }
 };
 
@@ -51,11 +60,6 @@ const initialState: AppState = {
   isRehydrated: false,
   workouts: [
     { id: createNanoID(), createdAt: new Date(), name: 'Short' as String32 },
-    // { id: createNanoID(), createdAt: new Date(), name: 'Short' as String32 },
-    // { id: createNanoID(), createdAt: new Date(), name: 'Short' as String32 },
-    // { id: createNanoID(), createdAt: new Date(), name: 'Short' as String32 },
-    // { id: createNanoID(), createdAt: new Date(), name: 'Short' as String32 },
-    // { id: createNanoID(), createdAt: new Date(), name: 'Short' as String32 },
   ],
 };
 

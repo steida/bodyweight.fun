@@ -3,11 +3,11 @@ import { pipe } from 'fp-ts/function';
 import { memo, useEffect } from 'react';
 import { useIntl } from 'react-intl';
 import { View } from 'react-native';
-import { NanoID } from '../codecs/branded';
+import { MaxLength, NanoID, String32 } from '../codecs/branded';
 import { useAppDispatch, useAppState } from '../contexts/AppStateContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { OutlineButton } from './buttons/OutlineButton';
-import { Heading } from './elements/Heading';
+import { TextField } from './fields/TextField';
 import { Modal } from './Modal';
 
 export const WorkoutDetail = memo<{
@@ -16,6 +16,7 @@ export const WorkoutDetail = memo<{
 }>(({ id, onRequestClose }) => {
   const t = useTheme();
   const intl = useIntl();
+  const appDispatch = useAppDispatch();
 
   const workout = useAppState((s) =>
     pipe(
@@ -30,7 +31,11 @@ export const WorkoutDetail = memo<{
     if (workout == null) onRequestClose();
   }, [onRequestClose, workout]);
 
-  const appDispatch = useAppDispatch();
+  const handleNameChangeText = (value: string) => {
+    // shit, muze empty, to je spatne
+    // decode je must!
+    appDispatch({ type: 'updateWorkoutName', id, value: value as String32 });
+  };
 
   const handleDeletePress = () => {
     appDispatch({ type: 'deleteWorkout', id });
@@ -39,14 +44,19 @@ export const WorkoutDetail = memo<{
   return (
     workout && (
       <Modal onRequestClose={onRequestClose}>
-        <Heading level={2} style={[t.text, t.color]}>
-          {workout.name}
-        </Heading>
-        <View style={[t.flexRow, t.justifyEvenly, t.mt]}>
-          <OutlineButton
-            title={intl.formatMessage({ defaultMessage: 'Delete' })}
-            onPress={handleDeletePress}
+        <View style={t.width12}>
+          <TextField
+            maxLength={MaxLength['32']}
+            label={intl.formatMessage({ defaultMessage: 'Workout Name' })}
+            value={workout.name}
+            onChangeText={handleNameChangeText}
           />
+          <View style={[t.flexRow, t.justifyEvenly, t.mt]}>
+            <OutlineButton
+              title={intl.formatMessage({ defaultMessage: 'Delete' })}
+              onPress={handleDeletePress}
+            />
+          </View>
         </View>
       </Modal>
     )

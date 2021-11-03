@@ -1,10 +1,4 @@
-import {
-  forwardRef,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from 'react';
+import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import {
   NativeSyntheticEvent,
   Text,
@@ -70,20 +64,6 @@ export const TextField = forwardRef<TextFieldRef, TextFieldProps>(
       },
     }));
 
-    // https://twitter.com/jordwalke/status/1356195754692382727
-    // https://gist.github.com/kiding/72721a0553fa93198ae2bb6eefaa3299
-    const [iosScrollFixEnabled, setIosScrollFixEnabled] = useState(
-      props.autoFocus || false,
-    );
-    useEffect(() => {
-      const timeout = setTimeout(() => {
-        setIosScrollFixEnabled(false);
-      }, 100); // 100 seems to be safe enough, 10 works, 1 not.
-      return () => {
-        clearTimeout(timeout);
-      };
-    }, []);
-
     return (
       <View
         // @ts-expect-error RNfW
@@ -114,7 +94,6 @@ export const TextField = forwardRef<TextFieldRef, TextFieldProps>(
               t.rounded,
               disabled && t.opacityDisabled,
               props.style,
-              iosScrollFixEnabled && t.opacity0,
               t.maxWFull,
             ]}
           />

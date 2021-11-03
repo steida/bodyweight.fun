@@ -10,6 +10,7 @@ import { TextField, TextFieldRef } from '../components/fields/TextField';
 import { useAppDispatch } from '../contexts/AppStateContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { createNanoID } from '../utils/createNanoID';
+import { OutlineButton } from './buttons/OutlineButton';
 import { Modal } from './Modal';
 
 const CreateWorkoutFormModal = ({
@@ -65,6 +66,10 @@ const CreateWorkoutFormModal = ({
           <PrimaryButton
             title={intl.formatMessage({ defaultMessage: 'Create' })}
             onPress={submit}
+          />
+          <OutlineButton
+            title={intl.formatMessage({ defaultMessage: 'Cancel' })}
+            onPress={onRequestClose}
           />
         </View>
       </View>

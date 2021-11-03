@@ -14,14 +14,14 @@ const WorkoutItem = memo<{ workout: Workout; onPress: (id: NanoID) => void }>(
 
     return (
       <Pressable
-        style={[t.mvSm, t.p]}
+        style={[t.mvSm, t.p, t.maxWFull]}
         accessibilityRole="button"
         onPress={() => {
           onPress(workout.id);
         }}
       >
         <InsetBorder style={[t.shadow, { shadowColor: stc(workout.name) }]} />
-        <Text selectable={false} style={[t.text, t.color]}>
+        <Text numberOfLines={1} selectable={false} style={[t.text, t.color]}>
           {workout.name}
         </Text>
       </Pressable>

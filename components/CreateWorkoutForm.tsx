@@ -9,7 +9,6 @@ import { PrimaryButton } from '../components/buttons/PrimaryButton';
 import { TextField, TextFieldRef } from '../components/fields/TextField';
 import { useAppDispatch } from '../contexts/AppStateContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { useIosScrollFix } from '../hooks/useIosScrollFix';
 import { createNanoID } from '../utils/createNanoID';
 import { Modal } from './Modal';
 
@@ -49,11 +48,9 @@ const CreateWorkoutFormModal = ({
     );
   };
 
-  const iosScrollFix = useIosScrollFix();
-
   return (
     <Modal contentStyle={t._top} onRequestClose={onRequestClose}>
-      <View style={t.phXL}>
+      <View style={t.shortTextInput}>
         <TextField
           autoFocus
           maxLength={MaxLength['32']}
@@ -63,7 +60,6 @@ const CreateWorkoutFormModal = ({
           onSubmitEditing={submit}
           ref={textFieldRef}
           blurOnSubmit={false}
-          style={iosScrollFix}
         />
         <View style={[t.flexRow, t.justifyAround]}>
           <PrimaryButton

@@ -77,7 +77,9 @@ export const createTheme = (colorScheme: ColorSchemeName) =>
     mhAuto: { marginHorizontal: 'auto' },
 
     wFull: { width: '100%' },
+    maxWFull: { maxWidth: '100%' },
     hFull: { height: '100%' },
+    maxHFull: { maxHeight: '100%' },
 
     // Note rhythm. Vertical is baseLineHeight, horizontal is baseFontSize.
     // RNfW statically renders only actually used styles so we can generate them.
@@ -331,4 +333,14 @@ export const createTheme = (colorScheme: ColorSchemeName) =>
         transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
       },
     }),
+
+    // The concept of _10x etc. is limiting and wrong anyway.
+    // The grid should consist of dividable squares.
+    // 29 we use right now is not well dividable.
+    // createTheme should be redesigned.
+    // Sizes should be defined manually only and as needed.
+    // Example:
+    shortTextInput: {
+      width: fontSize * 13,
+    },
   });

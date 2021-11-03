@@ -42,12 +42,13 @@ export const Modal: FC<
           t.flexGrow,
           t.justifyCenter,
           t.itemsCenter,
+          t.phSm,
           // @ts-expect-error RNfW
           { cursor: 'default' },
         ]}
       >
-        <View style={[t.wLg_10x, t.p, t.bgColor, contentStyle]}>
-          <InsetBorder style={t.shadow} />
+        <View style={[t.pv, t.phLg, contentStyle]}>
+          <InsetBorder style={[t.shadow, t.bgColor]} />
           {children}
         </View>
       </Pressable>

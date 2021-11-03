@@ -1,4 +1,10 @@
-import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
 import {
   NativeSyntheticEvent,
   Text,
@@ -23,7 +29,6 @@ export interface TextFieldProps extends TextInputProps {
   description?: string;
   descriptionStyle?: Text['props']['style'];
   error?: string;
-  fullWidth?: boolean;
 
   // https://web.dev/sign-in-form-best-practices/#checklist
   webAuthType?: 'username' | 'new-password' | 'current-password';
@@ -37,7 +42,6 @@ export const TextField = forwardRef<TextFieldRef, TextFieldProps>(
       description,
       descriptionStyle,
       error,
-      fullWidth,
 
       webAuthType,
       ...props
@@ -66,11 +70,25 @@ export const TextField = forwardRef<TextFieldRef, TextFieldProps>(
       },
     }));
 
+    // https://twitter.com/jordwalke/status/1356195754692382727
+    // https://gist.github.com/kiding/72721a0553fa93198ae2bb6eefaa3299
+    const [iosScrollFixEnabled, setIosScrollFixEnabled] = useState(
+      props.autoFocus || false,
+    );
+    useEffect(() => {
+      const timeout = setTimeout(() => {
+        setIosScrollFixEnabled(false);
+      }, 100); // 100 seems to be safe enough, 10 works, 1 not.
+      return () => {
+        clearTimeout(timeout);
+      };
+    }, []);
+
     return (
       <View
         // @ts-expect-error RNfW
         accessibilityRole="label"
-        style={[!fullWidth && t.maxWLg_10x, t.wFull]}
+        style={t.wFull}
       >
         <View style={[t.flexRow, afterLabel && t.justifyBetween]}>
           <Text style={[t.textSm, t.color]}>{label}</Text>
@@ -96,6 +114,8 @@ export const TextField = forwardRef<TextFieldRef, TextFieldProps>(
               t.rounded,
               disabled && t.opacityDisabled,
               props.style,
+              iosScrollFixEnabled && t.opacity0,
+              t.maxWFull,
             ]}
           />
         </View>

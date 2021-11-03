@@ -27,6 +27,7 @@ const Home = () => {
         ]}
       >
         <WorkoutsList />
+        {/* Consider floating like LandB MainNav. */}
         <CreateWorkoutForm />
       </View>
     </>

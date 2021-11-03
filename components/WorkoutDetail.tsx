@@ -10,27 +10,12 @@ import { OutlineButton } from './buttons/OutlineButton';
 import { Heading } from './elements/Heading';
 import { Modal } from './Modal';
 
-const DeleteButton = ({ id }: { id: NanoID }) => {
-  const intl = useIntl();
-  const appDispatch = useAppDispatch();
-
-  const handlePress = () => {
-    appDispatch({ type: 'deleteWorkout', id });
-  };
-
-  return (
-    <OutlineButton
-      title={intl.formatMessage({ defaultMessage: 'Delete' })}
-      onPress={handlePress}
-    />
-  );
-};
-
 export const WorkoutDetail = memo<{
   id: NanoID;
   onRequestClose: () => void;
 }>(({ id, onRequestClose }) => {
   const t = useTheme();
+  const intl = useIntl();
 
   const workout = useAppState((s) =>
     pipe(
@@ -40,9 +25,16 @@ export const WorkoutDetail = memo<{
     ),
   );
 
+  // When a workout is deleted.
   useEffect(() => {
     if (workout == null) onRequestClose();
   }, [onRequestClose, workout]);
+
+  const appDispatch = useAppDispatch();
+
+  const handleDeletePress = () => {
+    appDispatch({ type: 'deleteWorkout', id });
+  };
 
   return (
     workout && (
@@ -51,7 +43,10 @@ export const WorkoutDetail = memo<{
           {workout.name}
         </Heading>
         <View style={[t.flexRow, t.justifyEvenly, t.mt]}>
-          <DeleteButton id={id} />
+          <OutlineButton
+            title={intl.formatMessage({ defaultMessage: 'Delete' })}
+            onPress={handleDeletePress}
+          />
         </View>
       </Modal>
     )

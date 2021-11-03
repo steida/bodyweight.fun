@@ -34,7 +34,7 @@ export const WorkoutsList = () => {
 
   const [shownWorkoutID, setShownWorkoutID] = useState<NanoID | null>(null);
 
-  const handleWorkoutPress = useCallback((id: NanoID) => {
+  const handleWorkoutItemPress = useCallback((id: NanoID) => {
     setShownWorkoutID(id);
   }, []);
 
@@ -45,7 +45,7 @@ export const WorkoutsList = () => {
   return (
     <>
       {workouts.map((w) => (
-        <WorkoutItem workout={w} key={w.id} onPress={handleWorkoutPress} />
+        <WorkoutItem workout={w} key={w.id} onPress={handleWorkoutItemPress} />
       ))}
       {shownWorkoutID && (
         <WorkoutDetail

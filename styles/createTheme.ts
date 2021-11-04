@@ -340,7 +340,7 @@ export const createTheme = (colorScheme: ColorSchemeName) =>
     // createTheme should be redesigned.
     // Sizes should be defined manually only and as needed.
     // Example:
-    width12: {
-      width: fontSize * 12,
+    width13: {
+      width: fontSize * 13,
     },
   });

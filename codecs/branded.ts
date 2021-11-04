@@ -1,7 +1,7 @@
-import { either } from 'fp-ts';
 import { pipe } from 'fp-ts/function';
 import * as C from 'io-ts/Codec';
 import * as D from 'io-ts/Decoder';
+import { eitherToRightOrThrow } from '../utils/eitherToRighOrThrow';
 
 // Decoders
 
@@ -81,17 +81,6 @@ const NanoIDStringDecoder = pipe(
 
 // Codecs
 
-// This is a pattern. When we need a hard-coded codec value, create it as
-// soon as possible. If we ever change codec, the app will fail to start.
-// Casting via `as` is possible but not safe.
-const createEmpty = <T extends string>(codec: C.Codec<unknown, string, T>) =>
-  pipe(
-    codec.decode(''),
-    either.getOrElseW(() => {
-      throw new Error();
-    }),
-  );
-
 export const String32 = C.make(Max32StringDecoder, { encode: String });
 export type String32 = C.TypeOf<typeof String32>;
 
@@ -99,8 +88,8 @@ export const String64 = C.make(Max64StringDecoder, { encode: String });
 export type String64 = C.TypeOf<typeof String64>;
 
 export const String1024 = C.make(Max1024StringDecoder, { encode: String });
-export const EmptyString1024 = createEmpty(String1024);
 export type String1024 = C.TypeOf<typeof String1024>;
+export const emptyString1024 = eitherToRightOrThrow(String1024.decode(''));
 
 export const NanoID = C.make(NanoIDStringDecoder, { encode: String });
 export type NanoID = C.TypeOf<typeof NanoID>;

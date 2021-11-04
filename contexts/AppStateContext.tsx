@@ -17,7 +17,7 @@ import {
   useContextSelector,
 } from 'use-context-selector';
 import {
-  EmptyString1024,
+  emptyString1024,
   NanoID,
   String1024,
   String32,
@@ -25,6 +25,7 @@ import {
 import { Workout } from '../codecs/domain';
 import { StorageGetError, StorageState, useStorage } from '../hooks/useStorage';
 import { createNanoID } from '../utils/createNanoID';
+import { eitherToRightOrThrow } from '../utils/eitherToRighOrThrow';
 
 export interface AppState {
   isRehydrated: boolean;
@@ -72,7 +73,7 @@ const reducer: Reducer<AppState, AppAction> = (state, action) => {
             id: createNanoID(),
             createdAt: new Date(),
             name: action.name,
-            exercises: EmptyString1024,
+            exercises: emptyString1024,
           },
         ]),
       )(state);
@@ -106,7 +107,26 @@ const reducer: Reducer<AppState, AppAction> = (state, action) => {
 
 const initialState: AppState = {
   isRehydrated: false,
-  workouts: [],
+  workouts: [
+    {
+      id: createNanoID(),
+      createdAt: new Date(),
+      name: eitherToRightOrThrow(String32.decode('An example')),
+      exercises: eitherToRightOrThrow(
+        String1024.decode(
+          `
+jumping jack 3m
+stretching 1m
+sit-ups 20x
+stretching, 1m
+push-ups, 20x
+plank, 1m
+
+2 rounds`.trim(),
+        ),
+      ),
+    },
+  ],
 };
 
 const AppStateContext = createContext<AppState>(initialState);

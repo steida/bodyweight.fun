@@ -12,6 +12,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { createNanoID } from '../utils/createNanoID';
 import { OutlineButton } from './buttons/OutlineButton';
 import { Modal } from './Modal';
+import { Stack } from './Stack';
 
 const CreateWorkoutFormModal = ({
   onRequestClose,
@@ -62,7 +63,7 @@ const CreateWorkoutFormModal = ({
           ref={textFieldRef}
           blurOnSubmit={false}
         />
-        <View style={[t.flexRow, t.justifyAround]}>
+        <Stack direction="row" style={t.justifyCenter}>
           <PrimaryButton
             title={intl.formatMessage({ defaultMessage: 'Create' })}
             onPress={submit}
@@ -71,7 +72,7 @@ const CreateWorkoutFormModal = ({
             title={intl.formatMessage({ defaultMessage: 'Cancel' })}
             onPress={onRequestClose}
           />
-        </View>
+        </Stack>
       </View>
     </Modal>
   );

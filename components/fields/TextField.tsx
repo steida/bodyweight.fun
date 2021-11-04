@@ -8,6 +8,7 @@ import {
   View,
 } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useBreakpoint } from '../../hooks/useBreakpoint';
 import { InsetBorder } from '../InsetBorder';
 
 export interface TextFieldRef {
@@ -38,6 +39,7 @@ export const TextField = forwardRef<TextFieldRef, TextFieldProps>(
       error,
 
       webAuthType,
+      autoFocus,
       ...props
     },
     ref,
@@ -64,6 +66,9 @@ export const TextField = forwardRef<TextFieldRef, TextFieldProps>(
       },
     }));
 
+    const breakPoint = useBreakpoint();
+    if (breakPoint === 'mobile') autoFocus = false;
+
     return (
       <View
         // @ts-expect-error RNfW
@@ -82,6 +87,7 @@ export const TextField = forwardRef<TextFieldRef, TextFieldProps>(
             onBlur={handleBlur}
             autoCapitalize="none"
             autoCorrect={false}
+            autoFocus={autoFocus}
             {...props}
             {...(webAuthType && { autoCompleteType: webAuthType as never })}
             value={props.value || ''}

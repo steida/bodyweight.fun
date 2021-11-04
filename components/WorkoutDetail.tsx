@@ -12,6 +12,36 @@ import { TextField } from './fields/TextField';
 import { Modal } from './Modal';
 import { Stack } from './Stack';
 
+const NBSP = '\xa0';
+
+const WorkoutNameField = memo<{ id: NanoID; value: String32 }>(
+  ({ id, value }) => {
+    const intl = useIntl();
+    const appDispatch = useAppDispatch();
+
+    const handleChangeText = (text: string) => {
+      pipe(
+        // We can't store empty text, and we don't want it
+        // because it would collapse elements.
+        // That's why we replace an empty string with NBSP.
+        String32.decode(text.length === 0 ? NBSP : text),
+        either.match(constVoid, (value) => {
+          appDispatch({ type: 'updateWorkoutName', id, value });
+        }),
+      );
+    };
+
+    return (
+      <TextField
+        maxLength={MaxLength['32']}
+        label={intl.formatMessage({ defaultMessage: 'Workout Name' })}
+        value={value.startsWith(NBSP) ? value.slice(1) : value}
+        onChangeText={handleChangeText}
+      />
+    );
+  },
+);
+
 const Buttons = memo<{ id: NanoID; onRequestClose: () => void }>(
   ({ id, onRequestClose }) => {
     const t = useTheme();
@@ -62,8 +92,6 @@ export const WorkoutDetail = memo<{
   onRequestClose: () => void;
 }>(({ id, onRequestClose }) => {
   const t = useTheme();
-  const intl = useIntl();
-  const appDispatch = useAppDispatch();
 
   const workout = useAppState((s) =>
     pipe(
@@ -73,31 +101,16 @@ export const WorkoutDetail = memo<{
     ),
   );
 
-  // When a workout is deleted.
+  // Close WorkoutDetail when a workout is deleted.
   useEffect(() => {
     if (workout == null) onRequestClose();
   }, [onRequestClose, workout]);
-
-  const [name, setName] = useState(workout?.name || '');
-  useEffect(() => {
-    pipe(
-      String32.decode(name),
-      either.match(constVoid, (value) => {
-        appDispatch({ type: 'updateWorkoutName', id, value });
-      }),
-    );
-  }, [appDispatch, id, name]);
 
   return (
     workout && (
       <Modal onRequestClose={onRequestClose}>
         <View style={[t.width12, t.mh]}>
-          <TextField
-            maxLength={MaxLength['32']}
-            label={intl.formatMessage({ defaultMessage: 'Workout Name' })}
-            value={name}
-            onChangeText={setName}
-          />
+          <WorkoutNameField id={workout.id} value={workout.name} />
         </View>
         <Buttons id={id} onRequestClose={onRequestClose} />
       </Modal>

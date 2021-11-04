@@ -52,7 +52,8 @@ const reducer: Reducer<AppState, AppAction> = (state, action) => {
         lens.prop('workouts'),
         lens.findFirst((w) => w.id === action.id),
         optional.prop('name'),
-      ).set(action.value)(state);
+        optional.modify(() => action.value),
+      )(state);
   }
 };
 

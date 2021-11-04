@@ -21,7 +21,13 @@ const WorkoutItem = memo<{ workout: Workout; onPress: (id: NanoID) => void }>(
         }}
       >
         <InsetBorder style={[t.shadow, { shadowColor: stc(workout.name) }]} />
-        <Text numberOfLines={1} selectable={false} style={[t.text, t.color]}>
+        <Text
+          // numberOfLines clips emojis because it adds overflow-y: hidden;
+          // I don't think we need it. Only wwwwwwwwwwwwwwwwwwwwwwww wraps.
+          // numberOfLines={1}
+          selectable={false}
+          style={[t.text, t.color]}
+        >
           {workout.name}
         </Text>
       </Pressable>

@@ -38,14 +38,14 @@ const StorageVersions = sum('version')({
 });
 type StorageVersions = TypeOf<typeof StorageVersions>;
 
-interface StorageGetError {
+export interface StorageGetError {
   type: 'storageGetError';
   error: {
     type: 'getItem' | 'getItemReturnsNull' | 'parse' | 'decode';
   };
 }
 
-interface StorageSetError {
+export interface StorageSetError {
   type: 'storageSetError';
   error: {
     type: 'stringify' | 'setItem';

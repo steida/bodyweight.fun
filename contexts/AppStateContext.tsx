@@ -1,5 +1,6 @@
 import { either, readonlyArray } from 'fp-ts';
 import { constVoid, pipe } from 'fp-ts/function';
+import { Either } from 'fp-ts/Either';
 import { lens, optional } from 'monocle-ts';
 import {
   Dispatch,
@@ -22,7 +23,7 @@ import {
   String32,
 } from '../codecs/branded';
 import { Workout } from '../codecs/domain';
-import { StorageState, useStorage } from '../hooks/useStorage';
+import { StorageGetError, StorageState, useStorage } from '../hooks/useStorage';
 import { createNanoID } from '../utils/createNanoID';
 
 export interface AppState {
@@ -31,7 +32,7 @@ export interface AppState {
 }
 
 type AppAction =
-  | { type: 'rehydrated'; workouts?: ReadonlyArray<Workout> }
+  | { type: 'rehydrate'; either: Either<StorageGetError, StorageState> }
   | { type: 'createWorkout'; name: String32 }
   | { type: 'deleteWorkout'; id: NanoID }
   | { type: 'updateWorkoutName'; id: NanoID; value: String32 }
@@ -39,16 +40,27 @@ type AppAction =
 
 const reducer: Reducer<AppState, AppAction> = (state, action) => {
   switch (action.type) {
-    case 'rehydrated':
+    case 'rehydrate':
       return pipe(
-        lens.id<AppState>(),
-        lens.props('isRehydrated', 'workouts'),
-        lens.modify(({ workouts }) => ({
-          isRehydrated: true,
-          // TODO: Split to two actions.
-          workouts: action.workouts || workouts,
-        })),
-      )(state);
+        action.either,
+        either.match(
+          () =>
+            pipe(
+              lens.id<AppState>(),
+              lens.prop('isRehydrated'),
+              lens.modify(() => true),
+            )(state),
+          (storageState) =>
+            pipe(
+              lens.id<AppState>(),
+              lens.props('isRehydrated', 'workouts'),
+              lens.modify(() => ({
+                isRehydrated: true,
+                workouts: storageState.workouts,
+              })),
+            )(state),
+        ),
+      );
 
     case 'createWorkout':
       return pipe(
@@ -118,27 +130,28 @@ export const AppStateProvider: FC = ({ children }) => {
         )
           // eslint-disable-next-line no-console
           console.log(e);
-        dispatch({ type: 'rehydrated' });
+        dispatch({ type: 'rehydrate', either: either.left(e) });
       },
-      ({ workouts }) => {
-        dispatch({ type: 'rehydrated', workouts });
+      (storageState) => {
+        dispatch({ type: 'rehydrate', either: either.right(storageState) });
       },
     ),
   );
 
-  const storageState: StorageState = useMemo(
+  const storageStateToSave: StorageState = useMemo(
     () => ({ workouts: state.workouts }),
     [state.workouts],
   );
 
   // https://twitter.com/estejs/status/1455313999902433283
-  const prevStorageState = useRef(storageState);
+  const prevStorageStateToSave = useRef(storageStateToSave);
   useEffect(() => {
-    if (prevStorageState.current !== storageState) {
-      prevStorageState.current = storageState;
+    if (prevStorageStateToSave.current !== storageStateToSave) {
+      prevStorageStateToSave.current = storageStateToSave;
+      // Do not save anything before rehydrate.
       if (!state.isRehydrated) return;
       // Fire and forget, we don't care about errors nor result.
-      storage.set(storageState)();
+      storage.set(storageStateToSave)();
     }
   });
 

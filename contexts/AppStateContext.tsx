@@ -1,4 +1,4 @@
-import { either } from 'fp-ts';
+import { either, readonlyArray } from 'fp-ts';
 import { constVoid, pipe } from 'fp-ts/function';
 import { lens, optional } from 'monocle-ts';
 import {
@@ -15,7 +15,12 @@ import {
   useContext,
   useContextSelector,
 } from 'use-context-selector';
-import { NanoID, String32 } from '../codecs/branded';
+import {
+  EmptyString1024,
+  NanoID,
+  String1024,
+  String32,
+} from '../codecs/branded';
 import { Workout } from '../codecs/domain';
 import { StorageState, useStorage } from '../hooks/useStorage';
 import { createNanoID } from '../utils/createNanoID';
@@ -27,25 +32,46 @@ export interface AppState {
 
 type AppAction =
   | { type: 'rehydrated'; workouts?: ReadonlyArray<Workout> }
-  | { type: 'createWorkout'; workout: Workout }
+  | { type: 'createWorkout'; name: String32 }
   | { type: 'deleteWorkout'; id: NanoID }
-  | { type: 'updateWorkoutName'; id: NanoID; value: String32 };
+  | { type: 'updateWorkoutName'; id: NanoID; value: String32 }
+  | { type: 'updateWorkoutExercises'; id: NanoID; value: String1024 };
 
 const reducer: Reducer<AppState, AppAction> = (state, action) => {
   switch (action.type) {
     case 'rehydrated':
-      return {
-        ...state,
-        isRehydrated: true,
-        workouts: action.workouts || state.workouts,
-      };
+      return pipe(
+        lens.id<AppState>(),
+        lens.props('isRehydrated', 'workouts'),
+        lens.modify(({ workouts }) => ({
+          isRehydrated: true,
+          // TODO: Split to two actions.
+          workouts: action.workouts || workouts,
+        })),
+      )(state);
+
     case 'createWorkout':
-      return { ...state, workouts: [...state.workouts, action.workout] };
+      return pipe(
+        lens.id<AppState>(),
+        lens.prop('workouts'),
+        lens.modify((a) => [
+          ...a,
+          {
+            id: createNanoID(),
+            createdAt: new Date(),
+            name: action.name,
+            exercises: EmptyString1024,
+          },
+        ]),
+      )(state);
+
     case 'deleteWorkout':
-      return {
-        ...state,
-        workouts: state.workouts.filter((w) => w.id !== action.id),
-      };
+      return pipe(
+        lens.id<AppState>(),
+        lens.prop('workouts'),
+        lens.modify(readonlyArray.filter((w) => w.id !== action.id)),
+      )(state);
+
     case 'updateWorkoutName':
       return pipe(
         lens.id<AppState>(),
@@ -54,14 +80,21 @@ const reducer: Reducer<AppState, AppAction> = (state, action) => {
         optional.prop('name'),
         optional.modify(() => action.value),
       )(state);
+
+    case 'updateWorkoutExercises':
+      return pipe(
+        lens.id<AppState>(),
+        lens.prop('workouts'),
+        lens.findFirst((w) => w.id === action.id),
+        optional.prop('exercises'),
+        optional.modify(() => action.value),
+      )(state);
   }
 };
 
 const initialState: AppState = {
   isRehydrated: false,
-  workouts: [
-    { id: createNanoID(), createdAt: new Date(), name: 'Short' as String32 },
-  ],
+  workouts: [],
 };
 
 const AppStateContext = createContext<AppState>(initialState);

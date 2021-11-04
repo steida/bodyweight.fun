@@ -126,6 +126,9 @@ const set = (state: StorageState): TaskEither<StorageSetError, void> =>
  * Typed and safe LocalStorage with migrations.
  * API is async to support React Native AsyncStorage in the future.
  * TODO: Propagate changes across tabs.
+ * Data should be small because LocalStorage is sync.
+ * For larger data, we can use https://github.com/jakearchibald/idb-keyval
+ * which is async.
  */
 export const useStorage = (
   onRehydrate: (e: Either<StorageGetError, StorageState>) => void,

@@ -1,8 +1,8 @@
 import { useIntl } from 'react-intl';
 import { View } from 'react-native';
-import { CreateWorkoutForm } from '../components/CreateWorkoutForm';
+import { CreateWorkoutForm } from '../components/forms/CreateWorkoutForm';
 import { Title } from '../components/Title';
-import { WorkoutsList } from '../components/WorkoutsList';
+import { WorkoutsList } from '../components/lists/WorkoutsList';
 import { useTheme } from '../contexts/ThemeContext';
 
 const Home = () => {

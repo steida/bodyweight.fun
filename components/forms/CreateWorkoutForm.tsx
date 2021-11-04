@@ -4,15 +4,14 @@ import { pipe } from 'fp-ts/function';
 import { useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { View } from 'react-native';
-import { MaxLength, String32 } from '../codecs/branded';
-import { PrimaryButton } from '../components/buttons/PrimaryButton';
-import { TextField, TextFieldRef } from '../components/fields/TextField';
-import { useAppDispatch } from '../contexts/AppStateContext';
-import { useTheme } from '../contexts/ThemeContext';
-import { createNanoID } from '../utils/createNanoID';
-import { OutlineButton } from './buttons/OutlineButton';
-import { Modal } from './Modal';
-import { Stack } from './Stack';
+import { MaxLength, String32 } from '../../codecs/branded';
+import { PrimaryButton } from '../buttons/PrimaryButton';
+import { TextField, TextFieldRef } from '../fields/TextField';
+import { useAppDispatch } from '../../contexts/AppStateContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import { OutlineButton } from '../buttons/OutlineButton';
+import { Modal } from '../Modal';
+import { Stack } from '../Stack';
 
 const CreateWorkoutFormModal = ({
   onRequestClose,
@@ -36,14 +35,7 @@ const CreateWorkoutFormModal = ({
         },
         (name) => {
           Fathom.trackGoal('8NAL5VZS', 0);
-          appDispatch({
-            type: 'createWorkout',
-            workout: {
-              id: createNanoID(),
-              createdAt: new Date(),
-              name,
-            },
-          });
+          appDispatch({ type: 'createWorkout', name });
           onRequestClose();
         },
       ),

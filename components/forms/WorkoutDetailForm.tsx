@@ -1,41 +1,59 @@
 import { either, option, readonlyArray } from 'fp-ts';
-import { constVoid, pipe } from 'fp-ts/function';
+import { constVoid, flow, pipe } from 'fp-ts/function';
 import { memo, useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { View } from 'react-native';
-import { MaxLength, NanoID, String32 } from '../codecs/branded';
-import { useAppDispatch, useAppState } from '../contexts/AppStateContext';
-import { useTheme } from '../contexts/ThemeContext';
-import { OutlineButton } from './buttons/OutlineButton';
-import { PrimaryButton } from './buttons/PrimaryButton';
-import { TextField } from './fields/TextField';
-import { Modal } from './Modal';
-import { Stack } from './Stack';
-
-const NBSP = '\xa0';
+import { MaxLength, NanoID, String1024, String32 } from '../../codecs/branded';
+import { useAppDispatch, useAppState } from '../../contexts/AppStateContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import { OutlineButton } from '../buttons/OutlineButton';
+import { PrimaryButton } from '../buttons/PrimaryButton';
+import { TextField } from '../fields/TextField';
+import { Modal } from '../Modal';
+import { Stack } from '../Stack';
 
 const WorkoutNameField = memo<{ id: NanoID; value: String32 }>(
   ({ id, value }) => {
     const intl = useIntl();
     const appDispatch = useAppDispatch();
 
-    const handleChangeText = (text: string) => {
-      pipe(
-        // We can't store empty text, and we don't want it
-        // because it would collapse elements.
-        // That's why we replace an empty string with NBSP.
-        String32.decode(text.length === 0 ? NBSP : text),
-        either.match(constVoid, (value) => {
-          appDispatch({ type: 'updateWorkoutName', id, value });
-        }),
-      );
-    };
+    const handleChangeText = flow(
+      String32.decode,
+      either.match(constVoid, (value) => {
+        appDispatch({ type: 'updateWorkoutName', id, value });
+      }),
+    );
 
     return (
       <TextField
         maxLength={MaxLength['32']}
         label={intl.formatMessage({ defaultMessage: 'Workout Name' })}
-        value={value.startsWith(NBSP) ? value.slice(1) : value}
+        value={value}
+        onChangeText={handleChangeText}
+      />
+    );
+  },
+);
+
+const WorkoutExercises = memo<{ id: NanoID; value: String1024 }>(
+  ({ id, value }) => {
+    const intl = useIntl();
+    const appDispatch = useAppDispatch();
+
+    const handleChangeText = flow(
+      String1024.decode,
+      either.match(constVoid, (value) => {
+        appDispatch({ type: 'updateWorkoutExercises', id, value });
+      }),
+    );
+
+    return (
+      <TextField
+        maxLength={MaxLength['1024']}
+        multiline
+        numberOfLines={8}
+        label={intl.formatMessage({ defaultMessage: 'Workout Exercises' })}
+        value={value}
         onChangeText={handleChangeText}
       />
     );
@@ -72,6 +90,7 @@ const Buttons = memo<{ id: NanoID; onRequestClose: () => void }>(
       <Stack direction="row" style={t.justifyCenter}>
         <PrimaryButton
           title={intl.formatMessage({ defaultMessage: 'Start' })}
+          disabled
           // onPress={handleDeletePress}
         />
         <OutlineButton
@@ -87,7 +106,7 @@ const Buttons = memo<{ id: NanoID; onRequestClose: () => void }>(
   },
 );
 
-export const WorkoutDetail = memo<{
+export const WorkoutDetailForm = memo<{
   id: NanoID;
   onRequestClose: () => void;
 }>(({ id, onRequestClose }) => {
@@ -101,7 +120,7 @@ export const WorkoutDetail = memo<{
     ),
   );
 
-  // Close WorkoutDetail when a workout is deleted.
+  // Close WorkoutDetailForm when a workout is deleted.
   useEffect(() => {
     if (workout == null) onRequestClose();
   }, [onRequestClose, workout]);
@@ -109,8 +128,11 @@ export const WorkoutDetail = memo<{
   return (
     workout && (
       <Modal onRequestClose={onRequestClose}>
-        <View style={[t.width12, t.mh]}>
-          <WorkoutNameField id={workout.id} value={workout.name} />
+        <View style={[t.width13, t.mh, t.mb]}>
+          <Stack>
+            <WorkoutNameField id={workout.id} value={workout.name} />
+            <WorkoutExercises id={workout.id} value={workout.exercises} />
+          </Stack>
         </View>
         <Buttons id={id} onRequestClose={onRequestClose} />
       </Modal>

@@ -118,9 +118,9 @@ const initialState: AppState = {
 jumping jack 3m
 stretching 1m
 sit-ups 20x
-stretching, 1m
-push-ups, 20x
-plank, 1m
+stretching 1m
+push-ups 20x
+plank 1m
 
 2 rounds`.trim(),
         ),

@@ -29,6 +29,10 @@ const CreateWorkoutFormModal = ({
   const submit = () => {
     pipe(
       String32.decode(name),
+      either.filterOrElseW(
+        (n) => n.length > 0,
+        () => 'empty',
+      ),
       either.match(
         () => {
           textFieldRef.current?.focus();

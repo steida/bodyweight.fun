@@ -36,7 +36,7 @@ const WorkoutNameField = memo<{ id: NanoID; value: String32 }>(
   },
 );
 
-const WorkoutExercises = memo<{ id: NanoID; value: String1024 }>(
+const WorkoutExercisesField = memo<{ id: NanoID; value: String1024 }>(
   ({ id, value }) => {
     const intl = useIntl();
     const appDispatch = useAppDispatch();
@@ -49,17 +49,16 @@ const WorkoutExercises = memo<{ id: NanoID; value: String1024 }>(
         }),
       );
 
-    // console.log(JSON.stringify(stringToExercises(value)));
-
     const handleHelpPress = () => {
-      // I don't know how to preserve whitespaces with intl.formatMessage.
-      handleChangeText(`stretching 1m
-push-ups 20x
-whatever
+      const help = intl.formatMessage(
+        {
+          defaultMessage: `
+            stretching 1m{newLine}push-ups 20x{newLine}whatever{newLine}{newLine}2 rounds (this is optional)`,
+        },
+        { newLine: '\n' },
+      );
 
-2 rounds (optional)
-
-${value}`);
+      handleChangeText(value.length === 0 ? help : `${value}\n\n${help}`);
     };
 
     return (
@@ -70,59 +69,69 @@ ${value}`);
         label={intl.formatMessage({ defaultMessage: 'Workout Exercises' })}
         value={value}
         onChangeText={handleChangeText}
-        afterLabel={<TextButton title="Help" onPress={handleHelpPress} />}
-        // description={<TextButton title="Help" />}
-        // description={intl.formatMessage({ defaultMessage: 'Help' })}
+        afterLabel={
+          <TextButton
+            title={intl.formatMessage({ defaultMessage: 'Help' })}
+            onPress={handleHelpPress}
+          />
+        }
       />
     );
   },
 );
 
-const Buttons = memo<{ id: NanoID; onRequestClose: () => void }>(
-  ({ id, onRequestClose }) => {
-    const t = useTheme();
-    const intl = useIntl();
-    const appDispatch = useAppDispatch();
+const Buttons = memo<{
+  id: NanoID;
+  exercises: String1024;
+  onRequestClose: () => void;
+}>(({ id, onRequestClose }) => {
+  const t = useTheme();
+  const intl = useIntl();
+  const appDispatch = useAppDispatch();
 
-    const handleDeletePress = () => {
-      appDispatch({ type: 'deleteWorkout', id });
-    };
+  const handleDeletePress = () => {
+    appDispatch({ type: 'deleteWorkout', id });
+  };
 
-    const [showOtherButtons, setShowOtherButtons] = useState(false);
+  // const exercisesModel = useMemo(
+  //   () => stringToExercises(exercises),
+  //   [exercises],
+  // );
 
-    if (showOtherButtons)
-      return (
-        <Stack direction="row" style={t.justifyCenter}>
-          <OutlineButton
-            title={intl.formatMessage({ defaultMessage: '←' })}
-            onPress={() => setShowOtherButtons(false)}
-          />
-          <OutlineButton
-            title={intl.formatMessage({ defaultMessage: 'Delete' })}
-            onPress={handleDeletePress}
-          />
-        </Stack>
-      );
+  const [showOtherButtons, setShowOtherButtons] = useState(false);
 
+  if (showOtherButtons)
     return (
       <Stack direction="row" style={t.justifyCenter}>
-        <PrimaryButton
-          title={intl.formatMessage({ defaultMessage: 'Start' })}
-          disabled
-          // onPress={handleDeletePress}
+        <OutlineButton
+          title={intl.formatMessage({ defaultMessage: '←' })}
+          onPress={() => setShowOtherButtons(false)}
         />
         <OutlineButton
-          title={intl.formatMessage({ defaultMessage: 'Close' })}
-          onPress={onRequestClose}
-        />
-        <OutlineButton
-          title={intl.formatMessage({ defaultMessage: '…' })}
-          onPress={() => setShowOtherButtons(true)}
+          title={intl.formatMessage({ defaultMessage: 'Delete' })}
+          onPress={handleDeletePress}
         />
       </Stack>
     );
-  },
-);
+
+  return (
+    <Stack direction="row" style={t.justifyCenter}>
+      <PrimaryButton
+        title={intl.formatMessage({ defaultMessage: 'Start' })}
+        // disabled={exercisesModel.exercises.length === 0}
+        // onPress={handleDeletePress}
+      />
+      <OutlineButton
+        title={intl.formatMessage({ defaultMessage: 'Close' })}
+        onPress={onRequestClose}
+      />
+      <OutlineButton
+        title={intl.formatMessage({ defaultMessage: '…' })}
+        onPress={() => setShowOtherButtons(true)}
+      />
+    </Stack>
+  );
+});
 
 export const WorkoutDetailForm = memo<{
   id: NanoID;
@@ -149,10 +158,14 @@ export const WorkoutDetailForm = memo<{
         <View style={[t.width13, t.mh, t.mb]}>
           <Stack>
             <WorkoutNameField id={workout.id} value={workout.name} />
-            <WorkoutExercises id={workout.id} value={workout.exercises} />
+            <WorkoutExercisesField id={workout.id} value={workout.exercises} />
           </Stack>
         </View>
-        <Buttons id={id} onRequestClose={onRequestClose} />
+        <Buttons
+          id={id}
+          exercises={workout.exercises}
+          onRequestClose={onRequestClose}
+        />
       </Modal>
     )
   );

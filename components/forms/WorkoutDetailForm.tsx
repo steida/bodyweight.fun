@@ -6,6 +6,7 @@ import { View } from 'react-native';
 import { MaxLength, NanoID, String1024, String32 } from '../../codecs/branded';
 import { useAppDispatch, useAppState } from '../../contexts/AppStateContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { stringToExercises } from '../../utils/stringToExercises';
 import { OutlineButton } from '../buttons/OutlineButton';
 import { PrimaryButton } from '../buttons/PrimaryButton';
 import { TextButton } from '../buttons/TextButton';
@@ -53,7 +54,7 @@ const WorkoutExercisesField = memo<{ id: NanoID; value: String1024 }>(
       const help = intl.formatMessage(
         {
           defaultMessage: `
-            stretching 1m{newLine}push-ups 20x{newLine}whatever{newLine}{newLine}2 rounds (this is optional)`,
+            stretching 1m{newLine}push-ups 20x{newLine}whatever{newLine}{newLine}2x (rounds are optional)`,
         },
         { newLine: '\n' },
       );
@@ -84,7 +85,7 @@ const Buttons = memo<{
   id: NanoID;
   exercises: String1024;
   onRequestClose: () => void;
-}>(({ id, onRequestClose }) => {
+}>(({ id, exercises, onRequestClose }) => {
   const t = useTheme();
   const intl = useIntl();
   const appDispatch = useAppDispatch();
@@ -93,10 +94,8 @@ const Buttons = memo<{
     appDispatch({ type: 'deleteWorkout', id });
   };
 
-  // const exercisesModel = useMemo(
-  //   () => stringToExercises(exercises),
-  //   [exercises],
-  // );
+  const exercisesModel = stringToExercises(exercises);
+  // console.log(JSON.stringify(exercisesModel));
 
   const [showOtherButtons, setShowOtherButtons] = useState(false);
 
@@ -118,7 +117,7 @@ const Buttons = memo<{
     <Stack direction="row" style={t.justifyCenter}>
       <PrimaryButton
         title={intl.formatMessage({ defaultMessage: 'Start' })}
-        // disabled={exercisesModel.exercises.length === 0}
+        disabled={exercisesModel.exercises.length === 0}
         // onPress={handleDeletePress}
       />
       <OutlineButton

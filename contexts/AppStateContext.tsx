@@ -123,7 +123,7 @@ stretching 1m
 push-ups 20x
 plank 1m
 
-2 rounds`.trim(),
+2x`.trim(),
         ),
       ),
     },

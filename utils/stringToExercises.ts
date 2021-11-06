@@ -51,8 +51,7 @@ const roundsRegex = pipe(
   expression.digit,
   expression.oneOrMore,
   expression.endCapture,
-  expression.whitespace,
-  expression.oneOrMore,
+  expression.string('x'),
   expression.toRegex,
 );
 

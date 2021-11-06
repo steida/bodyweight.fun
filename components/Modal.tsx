@@ -15,8 +15,9 @@ import { InsetBorder } from './InsetBorder';
 export const Modal: FC<
   ModalProps & {
     contentStyle?: StyleProp<ViewStyle>;
+    shadowColor?: string;
   }
-> = ({ contentStyle, children, ...modalProps }) => {
+> = ({ contentStyle, shadowColor, children, ...modalProps }) => {
   const t = useTheme();
   const intl = useIntl();
 
@@ -46,7 +47,14 @@ export const Modal: FC<
         ]}
       >
         <View style={[t.pv, t.phLg, contentStyle]}>
-          <InsetBorder style={[t.shadow, t.bgColor]} />
+          <InsetBorder
+            style={[
+              t.shadow,
+              t.bgColor,
+              shadowColor != null && { shadowColor },
+            ]}
+            slowTransition={!!shadowColor}
+          />
           {children}
         </View>
       </Pressable>

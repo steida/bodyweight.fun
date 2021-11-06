@@ -3,6 +3,7 @@ import { constVoid, flow, pipe } from 'fp-ts/function';
 import { memo, useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { View } from 'react-native';
+import stc from 'string-to-color';
 import { MaxLength, NanoID, String1024, String32 } from '../../codecs/branded';
 import { useAppDispatch, useAppState } from '../../contexts/AppStateContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -153,7 +154,7 @@ export const WorkoutDetailForm = memo<{
 
   return (
     workout && (
-      <Modal onRequestClose={onRequestClose}>
+      <Modal onRequestClose={onRequestClose} shadowColor={stc(workout.name)}>
         <View style={[t.width13, t.mh, t.mb]}>
           <Stack>
             <WorkoutNameField id={workout.id} value={workout.name} />

@@ -1,6 +1,6 @@
 import { either, option, readonlyArray } from 'fp-ts';
 import { constVoid, flow, pipe } from 'fp-ts/function';
-import { memo, useEffect, useState } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { View } from 'react-native';
 import stc from 'string-to-color';
@@ -11,6 +11,7 @@ import { stringToExercises } from '../../utils/stringToExercises';
 import { OutlineButton } from '../buttons/OutlineButton';
 import { PrimaryButton } from '../buttons/PrimaryButton';
 import { TextButton } from '../buttons/TextButton';
+import { ExercisesModal } from '../ExercisesModal';
 import { TextField } from '../fields/TextField';
 import { Modal } from '../Modal';
 import { Stack } from '../Stack';
@@ -95,8 +96,19 @@ const Buttons = memo<{
     appDispatch({ type: 'deleteWorkout', id });
   };
 
-  const exercisesModel = stringToExercises(exercises);
-  // console.log(JSON.stringify(exercisesModel));
+  const exercisesModel = useMemo(
+    () => stringToExercises(exercises),
+    [exercises],
+  );
+  const [modalIsVisible, setModalIsVisible] = useState(false);
+
+  const handleStartPress = () => {
+    setModalIsVisible(true);
+  };
+
+  const handleExerciseModalRequestClose = () => {
+    setModalIsVisible(false);
+  };
 
   const [showOtherButtons, setShowOtherButtons] = useState(false);
 
@@ -115,21 +127,29 @@ const Buttons = memo<{
     );
 
   return (
-    <Stack direction="row" style={t.justifyCenter}>
-      <PrimaryButton
-        title={intl.formatMessage({ defaultMessage: 'Start' })}
-        disabled={exercisesModel.exercises.length === 0}
-        // onPress={handleDeletePress}
-      />
-      <OutlineButton
-        title={intl.formatMessage({ defaultMessage: 'Close' })}
-        onPress={onRequestClose}
-      />
-      <OutlineButton
-        title={intl.formatMessage({ defaultMessage: '…' })}
-        onPress={() => setShowOtherButtons(true)}
-      />
-    </Stack>
+    <>
+      {modalIsVisible && option.isSome(exercisesModel) && (
+        <ExercisesModal
+          exercises={exercisesModel.value}
+          onRequestClose={handleExerciseModalRequestClose}
+        />
+      )}
+      <Stack direction="row" style={t.justifyCenter}>
+        <PrimaryButton
+          title={intl.formatMessage({ defaultMessage: 'Start' })}
+          disabled={option.isNone(exercisesModel)}
+          onPress={handleStartPress}
+        />
+        <OutlineButton
+          title={intl.formatMessage({ defaultMessage: 'Close' })}
+          onPress={onRequestClose}
+        />
+        <OutlineButton
+          title={intl.formatMessage({ defaultMessage: '…' })}
+          onPress={() => setShowOtherButtons(true)}
+        />
+      </Stack>
+    </>
   );
 });
 

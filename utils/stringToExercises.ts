@@ -1,7 +1,14 @@
 import { expression } from 'expressive-ts';
-import { option, predicate, readonlyArray, string } from 'fp-ts';
+import {
+  option,
+  predicate,
+  readonlyArray,
+  readonlyNonEmptyArray,
+  string,
+} from 'fp-ts';
 import { regExp } from 'fp-ts-contrib';
 import { constant, flow, pipe } from 'fp-ts/function';
+import { ReadonlyNonEmptyArray } from 'fp-ts/ReadonlyNonEmptyArray';
 
 type Exercise = Readonly<
   | { type: 'noParams'; name: string }
@@ -10,7 +17,7 @@ type Exercise = Readonly<
 >;
 
 export interface Exercises {
-  readonly exercises: readonly Exercise[];
+  readonly exercises: ReadonlyNonEmptyArray<Exercise>;
   readonly rounds: number;
 }
 
@@ -82,7 +89,7 @@ export const stringToExercises = flow(
   readonlyArray.map(string.trim),
   readonlyArray.filter(predicate.not(string.isEmpty)),
   readonlyArray.partition(regExp.test(roundsRegex)),
-  ({ left, right }): Exercises => ({
+  ({ left, right }) => ({
     exercises: left.map((s) =>
       pipe(
         stringToMinutesExercise(s),
@@ -99,4 +106,12 @@ export const stringToExercises = flow(
       option.getOrElse(constant(1)),
     ),
   }),
+  option.of,
+  option.bindTo('x'),
+  option.bind('exercises', ({ x: { exercises } }) =>
+    readonlyNonEmptyArray.fromReadonlyArray(exercises),
+  ),
+  option.map(
+    ({ exercises, x: { rounds } }): Exercises => ({ exercises, rounds }),
+  ),
 );

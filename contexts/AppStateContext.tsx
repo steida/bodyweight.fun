@@ -113,9 +113,10 @@ const initialState: AppState = {
       createdAt: new Date(),
       name: eitherToRightOrThrow(String32.decode('An example')),
       exercises: eitherToRightOrThrow(
+        // TODO: Localize with {newLine}
         String1024.decode(
           `
-jumping jack 3m
+jumping jacks 3m
 stretching 1m
 sit-ups 20x
 stretching 1m

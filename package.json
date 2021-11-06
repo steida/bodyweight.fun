@@ -12,8 +12,10 @@
   },
   "dependencies": {
     "babel-plugin-formatjs": "^10.3.11",
+    "expressive-ts": "^0.0.2",
     "fathom-client": "^3.2.0",
     "fp-ts": "^2.11.5",
+    "fp-ts-contrib": "^0.1.26",
     "io-ts": "^2.2.16",
     "monocle-ts": "^2.3.11",
     "nanoid": "^3.1.30",

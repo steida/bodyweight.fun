@@ -8,6 +8,7 @@ import { useAppDispatch, useAppState } from '../../contexts/AppStateContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { OutlineButton } from '../buttons/OutlineButton';
 import { PrimaryButton } from '../buttons/PrimaryButton';
+import { TextButton } from '../buttons/TextButton';
 import { TextField } from '../fields/TextField';
 import { Modal } from '../Modal';
 import { Stack } from '../Stack';
@@ -40,12 +41,26 @@ const WorkoutExercises = memo<{ id: NanoID; value: String1024 }>(
     const intl = useIntl();
     const appDispatch = useAppDispatch();
 
-    const handleChangeText = flow(
-      String1024.decode,
-      either.match(constVoid, (value) => {
-        appDispatch({ type: 'updateWorkoutExercises', id, value });
-      }),
-    );
+    const handleChangeText = (s: string) =>
+      pipe(
+        String1024.decode(s),
+        either.match(constVoid, (value) => {
+          appDispatch({ type: 'updateWorkoutExercises', id, value });
+        }),
+      );
+
+    // console.log(JSON.stringify(stringToExercises(value)));
+
+    const handleHelpPress = () => {
+      // I don't know how to preserve whitespaces with intl.formatMessage.
+      handleChangeText(`stretching 1m
+push-ups 20x
+whatever
+
+2 rounds (optional)
+
+${value}`);
+    };
 
     return (
       <TextField
@@ -55,6 +70,9 @@ const WorkoutExercises = memo<{ id: NanoID; value: String1024 }>(
         label={intl.formatMessage({ defaultMessage: 'Workout Exercises' })}
         value={value}
         onChangeText={handleChangeText}
+        afterLabel={<TextButton title="Help" onPress={handleHelpPress} />}
+        // description={<TextButton title="Help" />}
+        // description={intl.formatMessage({ defaultMessage: 'Help' })}
       />
     );
   },

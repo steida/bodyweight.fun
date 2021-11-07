@@ -5,7 +5,7 @@ import { useIntl } from 'react-intl';
 import { Modal, Pressable } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import { Exercises } from '../utils/stringToExercises';
-import { MaxTextWithoutWrap } from './MaxTextWithoutWrap';
+import { FitText } from './FitText';
 
 export const ExercisesModal: FC<{
   exercises: Exercises;
@@ -34,10 +34,10 @@ export const ExercisesModal: FC<{
         accessibilityLabel={intl.formatMessage({
           defaultMessage: 'Next Exercise',
         })}
-        style={[t.flexGrow, t.bgColor, t.justifyCenter, t.itemsCenter]}
+        style={[t.flexGrow, t.bgColor]}
         onPress={handlePressablePress}
       >
-        <MaxTextWithoutWrap text={exercise.value.name} />
+        <FitText text={`\xa0${exercise.value.name}\xa0`} />
       </Pressable>
     </Modal>
   );

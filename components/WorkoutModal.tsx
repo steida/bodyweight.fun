@@ -168,9 +168,10 @@ export const WorkoutModal = memo<{
   if (option.isNone(exercise)) return null;
 
   const renderExercise = (exercise: Exercise, index: number): JSX.Element => {
+    const key = `${currentRound}-${index}`;
     switch (exercise.type) {
       case 'noParams':
-        return <NoParamsScreen exercise={exercise} key={index} />;
+        return <NoParamsScreen exercise={exercise} key={key} />;
       case 'seconds':
       case 'minutes':
         return (
@@ -178,11 +179,11 @@ export const WorkoutModal = memo<{
             isShown={index === currentExercise && !animIsPending}
             exercise={exercise}
             onEnd={handleNextPress}
-            key={index}
+            key={key}
           />
         );
       case 'repetitions':
-        return <RepetitionsScreen exercise={exercise} key={index} />;
+        return <RepetitionsScreen exercise={exercise} key={key} />;
     }
   };
 

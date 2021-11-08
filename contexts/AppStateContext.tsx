@@ -105,7 +105,7 @@ const reducer: Reducer<AppState, AppAction> = (state, action) => {
   }
 };
 
-const initialState: AppState = {
+export const initialAppState: AppState = {
   isRehydrated: false,
   workouts: [
     {
@@ -113,15 +113,15 @@ const initialState: AppState = {
       createdAt: new Date(),
       name: eitherToRightOrThrow(String32.decode('An example')),
       exercises: eitherToRightOrThrow(
-        // TODO: Localize with {newLine}
+        // TODO: Localize with {newLine}, { newLine: '\n' },
         String1024.decode(
           `
-jumping jacks 3m
 stretching 1m
-sit-ups 20x
-stretching 1m
+jumping jacks 1m
 push-ups 20x
-plank 1m
+sit-ups 20x
+relax
+plank 30s
 
 2x`.trim(),
         ),
@@ -130,7 +130,7 @@ plank 1m
   ],
 };
 
-const AppStateContext = createContext<AppState>(initialState);
+const AppStateContext = createContext<AppState>(initialAppState);
 export const useAppState = <Selected extends any>(
   selector: (state: AppState) => Selected,
 ): Selected => useContextSelector(AppStateContext, selector);
@@ -139,7 +139,7 @@ const AppDispatchContext = createContext<Dispatch<AppAction>>(constVoid);
 export const useAppDispatch = () => useContext(AppDispatchContext);
 
 export const AppStateProvider: FC = ({ children }) => {
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [state, dispatch] = useReducer(reducer, initialAppState);
 
   const storage = useStorage(
     either.match(

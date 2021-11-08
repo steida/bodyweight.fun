@@ -5,7 +5,11 @@ import { useIntl } from 'react-intl';
 import { View } from 'react-native';
 import stc from 'string-to-color';
 import { MaxLength, NanoID, String1024, String32 } from '../../codecs/branded';
-import { useAppDispatch, useAppState } from '../../contexts/AppStateContext';
+import {
+  initialAppState,
+  useAppDispatch,
+  useAppState,
+} from '../../contexts/AppStateContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { stringToExercises } from '../../utils/stringToExercises';
 import { OutlineButton } from '../buttons/OutlineButton';
@@ -54,16 +58,9 @@ const WorkoutExercisesField = memo<{ id: NanoID; value: String1024 }>(
         }),
       );
 
-    const handleHelpPress = () => {
-      const help = intl.formatMessage(
-        {
-          defaultMessage: `
-            stretching 1m{newLine}push-ups 20x{newLine}whatever{newLine}{newLine}2x (rounds are optional)`,
-        },
-        { newLine: '\n' },
-      );
-
-      handleChangeText(value.length === 0 ? help : `${value}\n\n${help}`);
+    const handleExamplePress = () => {
+      const example = initialAppState.workouts[0].exercises;
+      handleChangeText(value.length === 0 ? example : `${value}\n\n${example}`);
     };
 
     return (
@@ -76,8 +73,8 @@ const WorkoutExercisesField = memo<{ id: NanoID; value: String1024 }>(
         onChangeText={handleChangeText}
         afterLabel={
           <TextButton
-            title={intl.formatMessage({ defaultMessage: 'Help' })}
-            onPress={handleHelpPress}
+            title={intl.formatMessage({ defaultMessage: 'Example' })}
+            onPress={handleExamplePress}
           />
         }
       />

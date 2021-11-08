@@ -8,18 +8,7 @@ import {
 } from 'fp-ts';
 import { regExp } from 'fp-ts-contrib';
 import { constant, flow, pipe } from 'fp-ts/function';
-import { ReadonlyNonEmptyArray } from 'fp-ts/ReadonlyNonEmptyArray';
-
-export type Exercise = Readonly<
-  | { type: 'noParams'; name: string }
-  | { type: 'minutes'; name: string; minutes: number }
-  | { type: 'repetitions'; name: string; repetitions: number }
->;
-
-export interface Exercises {
-  readonly exercises: ReadonlyNonEmptyArray<Exercise>;
-  readonly rounds: number;
-}
+import { Exercise, Exercises } from '../codecs/domain';
 
 // \n is not enough
 const lineBreakRegex = pipe(
@@ -44,6 +33,7 @@ const createExerciseRegexWithParam = (char: string) =>
     expression.toRegex,
   );
 
+const secondsExerciseRegex = createExerciseRegexWithParam('s');
 const minutesExerciseRegex = createExerciseRegexWithParam('m');
 // Test whitespaces with emoji. We trim expression.anything.
 // console.log(' 😂 mavat  rukama  1m'.match(minutesExercise));
@@ -60,6 +50,17 @@ const roundsRegex = pipe(
   expression.endCapture,
   expression.string('x'),
   expression.toRegex,
+);
+
+const stringToSecondsExercise = flow(
+  regExp.match(secondsExerciseRegex),
+  option.map(
+    (a): Exercise => ({
+      type: 'seconds',
+      name: a[1].trim(),
+      seconds: Number(a[2]),
+    }),
+  ),
 );
 
 const stringToMinutesExercise = flow(
@@ -92,7 +93,8 @@ export const stringToExercises = flow(
   ({ left, right }) => ({
     exercises: left.map((s) =>
       pipe(
-        stringToMinutesExercise(s),
+        stringToSecondsExercise(s),
+        option.alt(() => stringToMinutesExercise(s)),
         option.alt(() => stringToRepetitionsExercise(s)),
         option.getOrElse(
           (): Exercise => ({ type: 'noParams', name: s.trim() }),

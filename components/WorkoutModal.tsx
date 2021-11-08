@@ -12,8 +12,8 @@ import { useIntl } from 'react-intl';
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import { useSpring } from 'react-spring';
 import { String32 } from '../codecs/branded';
+import { Exercise, Exercises } from '../codecs/domain';
 import { useTheme } from '../contexts/ThemeContext';
-import { Exercise, Exercises } from '../utils/stringToExercises';
 import { AnimatedView } from './AnimatedView';
 import { FitText } from './FitText';
 import { Title } from './Title';
@@ -37,8 +37,8 @@ const NoParamsScreen = memo<{
   return <Screen name={exercise.name} />;
 });
 
-const MinutesScreen = memo<{
-  exercise: Extract<Exercise, { type: 'minutes' }>;
+const TimeScreen = memo<{
+  exercise: Extract<Exercise, { type: 'minutes' | 'seconds' }>;
   isShown: boolean;
   onEnd: () => void;
 }>(({ exercise, onEnd, isShown }) => {
@@ -52,7 +52,10 @@ const MinutesScreen = memo<{
     },
     pause: !isShown,
     config: {
-      duration: exercise.minutes * 60 * 1000,
+      duration:
+        exercise.type === 'minutes'
+          ? exercise.minutes * 60 * 1000
+          : exercise.seconds * 1000,
     },
   });
 
@@ -166,17 +169,18 @@ export const WorkoutModal = memo<{
 
   const renderExercise = (exercise: Exercise, index: number): JSX.Element => {
     switch (exercise.type) {
+      case 'noParams':
+        return <NoParamsScreen exercise={exercise} key={index} />;
+      case 'seconds':
       case 'minutes':
         return (
-          <MinutesScreen
+          <TimeScreen
             isShown={index === currentExercise && !animIsPending}
             exercise={exercise}
             onEnd={handleNextPress}
             key={index}
           />
         );
-      case 'noParams':
-        return <NoParamsScreen exercise={exercise} key={index} />;
       case 'repetitions':
         return <RepetitionsScreen exercise={exercise} key={index} />;
     }

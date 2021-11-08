@@ -1,6 +1,13 @@
 import { option, readonlyArray } from 'fp-ts';
 import { decrement, increment, pipe } from 'fp-ts/function';
-import { FC, memo, useCallback, useEffect, useState } from 'react';
+import {
+  FC,
+  KeyboardEvent,
+  memo,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
 import { useIntl } from 'react-intl';
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import { useSpring } from 'react-spring';
@@ -124,6 +131,20 @@ export const WorkoutModal = memo<{
     else setCurrentIndex(increment);
   }, [exercises.length, currentIndex, onRequestClose]);
 
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent<HTMLDivElement>) => {
+      switch (e.key) {
+        case 'ArrowLeft':
+          handlePreviousPress();
+          break;
+        case 'ArrowRight':
+          handleNextPress();
+          break;
+      }
+    },
+    [handleNextPress, handlePreviousPress],
+  );
+
   if (option.isNone(exercise)) return null;
 
   // hmm, hmm, ukladat pending, do state, pac se to musi prekreslit
@@ -168,16 +189,28 @@ export const WorkoutModal = memo<{
         accessibilityLabel={intl.formatMessage({
           defaultMessage: 'Previous Exercise',
         })}
-        style={[t.absolute, { top: 0, bottom: 0, left: 0, right: '50%' }]}
+        style={[
+          t.absolute,
+          t.noOutline,
+          { top: 0, bottom: 0, left: 0, right: '50%' },
+        ]}
         onPress={handlePreviousPress}
+        // @ts-expect-error RNfW
+        onKeyDown={handleKeyDown}
       ></Pressable>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={intl.formatMessage({
           defaultMessage: 'Next Exercise',
         })}
-        style={[t.absolute, { top: 0, bottom: 0, left: '50%', right: 0 }]}
+        style={[
+          t.absolute,
+          t.noOutline,
+          { top: 0, bottom: 0, left: '50%', right: 0 },
+        ]}
         onPress={handleNextPress}
+        // @ts-expect-error RNfW
+        onKeyDown={handleKeyDown}
       ></Pressable>
     </Modal>
   );

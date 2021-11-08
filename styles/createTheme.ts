@@ -351,4 +351,9 @@ export const createTheme = (colorScheme: ColorSchemeName) =>
     viewportWidth100: {
       width: '100vw',
     },
+
+    noOutline: {
+      // @ts-expect-error RNfW
+      outlineStyle: 'none',
+    },
   });

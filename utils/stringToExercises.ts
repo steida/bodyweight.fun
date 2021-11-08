@@ -10,7 +10,7 @@ import { regExp } from 'fp-ts-contrib';
 import { constant, flow, pipe } from 'fp-ts/function';
 import { ReadonlyNonEmptyArray } from 'fp-ts/ReadonlyNonEmptyArray';
 
-type Exercise = Readonly<
+export type Exercise = Readonly<
   | { type: 'noParams'; name: string }
   | { type: 'minutes'; name: string; minutes: number }
   | { type: 'repetitions'; name: string; repetitions: number }

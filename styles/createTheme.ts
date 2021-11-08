@@ -210,6 +210,9 @@ export const createTheme = (colorScheme: ColorSchemeName) =>
     opacity0: {
       opacity: 0,
     },
+    opacity02: {
+      opacity: 0.2,
+    },
     opacityPressed: {
       opacity: 0.7,
     },
@@ -342,5 +345,10 @@ export const createTheme = (colorScheme: ColorSchemeName) =>
     // Example:
     width13: {
       width: fontSize * 13,
+    },
+
+    // I suppose it should have better performance then percents from parents.
+    viewportWidth100: {
+      width: '100vw',
     },
   });

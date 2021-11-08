@@ -11,10 +11,12 @@ import { stringToExercises } from '../../utils/stringToExercises';
 import { OutlineButton } from '../buttons/OutlineButton';
 import { PrimaryButton } from '../buttons/PrimaryButton';
 import { TextButton } from '../buttons/TextButton';
-import { ExercisesModal } from '../ExercisesModal';
+import { WorkoutModal } from '../WorkoutModal';
 import { TextField } from '../fields/TextField';
 import { Modal } from '../Modal';
 import { Stack } from '../Stack';
+import { Workout } from '../../codecs/domain';
+import { Title } from '../Title';
 
 const WorkoutNameField = memo<{ id: NanoID; value: String32 }>(
   ({ id, value }) => {
@@ -85,9 +87,9 @@ const WorkoutExercisesField = memo<{ id: NanoID; value: String1024 }>(
 
 const Buttons = memo<{
   id: NanoID;
-  exercises: String1024;
+  workout: Workout;
   onRequestClose: () => void;
-}>(({ id, exercises, onRequestClose }) => {
+}>(({ id, workout, onRequestClose }) => {
   const t = useTheme();
   const intl = useIntl();
   const appDispatch = useAppDispatch();
@@ -97,8 +99,8 @@ const Buttons = memo<{
   };
 
   const exercisesModel = useMemo(
-    () => stringToExercises(exercises),
-    [exercises],
+    () => stringToExercises(workout.exercises),
+    [workout.exercises],
   );
   const [modalIsVisible, setModalIsVisible] = useState(false);
 
@@ -128,8 +130,10 @@ const Buttons = memo<{
 
   return (
     <>
+      <Title title={workout.name} />
       {modalIsVisible && option.isSome(exercisesModel) && (
-        <ExercisesModal
+        <WorkoutModal
+          name={workout.name}
           exercises={exercisesModel.value}
           onRequestClose={handleExerciseModalRequestClose}
         />
@@ -181,11 +185,7 @@ export const WorkoutDetailForm = memo<{
             <WorkoutExercisesField id={workout.id} value={workout.exercises} />
           </Stack>
         </View>
-        <Buttons
-          id={id}
-          exercises={workout.exercises}
-          onRequestClose={onRequestClose}
-        />
+        <Buttons id={id} workout={workout} onRequestClose={onRequestClose} />
       </Modal>
     )
   );

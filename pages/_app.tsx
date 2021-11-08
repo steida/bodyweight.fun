@@ -10,6 +10,20 @@ import { ThemeProvider } from '../contexts/ThemeContext';
 import { storageKey } from '../hooks/useStorage';
 import '../styles/global.css';
 
+// TODO: Remove, React 18 doesn't warn anymore.
+// https://twitter.com/estejs/status/1428470008997421066
+{
+  // eslint-disable-next-line no-console
+  const error = console.error;
+  // eslint-disable-next-line no-console
+  console.error = (...args) => {
+    const isUselessReactWarning =
+      typeof args[0] === 'string' &&
+      args[0].startsWith("Warning: Can't perform a React state");
+    if (!isUselessReactWarning) error(...args);
+  };
+}
+
 Router.events.on('routeChangeComplete', () => {
   Fathom.trackPageview();
 });

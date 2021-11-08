@@ -96,11 +96,12 @@ export const WorkoutModal = memo<{
   name: String32;
   exercises: Exercises;
   onRequestClose: () => void;
-}>(({ exercises: { exercises }, onRequestClose }) => {
+}>(({ exercises: { exercises, rounds }, onRequestClose }) => {
   const intl = useIntl();
   const t = useTheme();
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const exercise = pipe(exercises, readonlyArray.lookup(currentIndex));
+  const [currentRound, setCurrentRound] = useState(0);
+  const [currentExercise, setCurrentExercise] = useState(0);
+  const exercise = pipe(exercises, readonlyArray.lookup(currentExercise));
   const [animIsPending, setAnimIsPending] = useState(false);
 
   const handleSpringStart = useCallback(() => {
@@ -112,7 +113,7 @@ export const WorkoutModal = memo<{
   }, []);
 
   const styles = useSpring({
-    translateX: `-${(currentIndex * 100) / exercises.length}%`,
+    translateX: `-${(currentExercise * 100) / exercises.length}%`,
     onStart: handleSpringStart,
     onRest: handleSpringRest,
   });
@@ -122,14 +123,30 @@ export const WorkoutModal = memo<{
   }, [exercise, onRequestClose]);
 
   const handlePreviousPress = useCallback(() => {
-    if (currentIndex === 0) onRequestClose();
-    else setCurrentIndex(decrement);
-  }, [currentIndex, onRequestClose]);
+    if (currentExercise === 0) {
+      if (currentRound > 0) {
+        setCurrentRound(decrement);
+        setCurrentExercise(exercises.length - 1);
+      } else {
+        onRequestClose();
+      }
+    } else {
+      setCurrentExercise(decrement);
+    }
+  }, [currentExercise, currentRound, exercises.length, onRequestClose]);
 
   const handleNextPress = useCallback(() => {
-    if (currentIndex === exercises.length - 1) onRequestClose();
-    else setCurrentIndex(increment);
-  }, [exercises.length, currentIndex, onRequestClose]);
+    if (currentExercise === exercises.length - 1) {
+      if (currentRound < rounds - 1) {
+        setCurrentRound(increment);
+        setCurrentExercise(0);
+      } else {
+        onRequestClose();
+      }
+    } else {
+      setCurrentExercise(increment);
+    }
+  }, [currentExercise, currentRound, exercises.length, onRequestClose, rounds]);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLDivElement>) => {
@@ -147,14 +164,12 @@ export const WorkoutModal = memo<{
 
   if (option.isNone(exercise)) return null;
 
-  // hmm, hmm, ukladat pending, do state, pac se to musi prekreslit
-
   const renderExercise = (exercise: Exercise, index: number): JSX.Element => {
     switch (exercise.type) {
       case 'minutes':
         return (
           <MinutesScreen
-            isShown={index === currentIndex && !animIsPending}
+            isShown={index === currentExercise && !animIsPending}
             exercise={exercise}
             onEnd={handleNextPress}
             key={index}
@@ -197,7 +212,7 @@ export const WorkoutModal = memo<{
         onPress={handlePreviousPress}
         // @ts-expect-error RNfW
         onKeyDown={handleKeyDown}
-      ></Pressable>
+      />
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={intl.formatMessage({
@@ -211,7 +226,7 @@ export const WorkoutModal = memo<{
         onPress={handleNextPress}
         // @ts-expect-error RNfW
         onKeyDown={handleKeyDown}
-      ></Pressable>
+      />
     </Modal>
   );
 });

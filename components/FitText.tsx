@@ -1,6 +1,6 @@
 import { pipe } from 'fp-ts/function';
 import { lens } from 'monocle-ts';
-import { memo, useLayoutEffect, useRef, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import { LayoutChangeEvent, Text, View } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -65,7 +65,7 @@ export const FitText = memo<{ text: string }>(({ text }) => {
   };
 
   const prevViewRect = useRef(viewRect);
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (prevViewRect.current !== viewRect) {
       prevViewRect.current = viewRect;
       computeFontSize();
@@ -73,7 +73,7 @@ export const FitText = memo<{ text: string }>(({ text }) => {
   }, [viewRect]);
 
   const prevText = useRef(text);
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (prevText.current !== text) {
       prevText.current = text;
       computeFontSize();

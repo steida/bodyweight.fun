@@ -1,8 +1,9 @@
 import { either, option, readonlyArray } from 'fp-ts';
+import { Clipboard } from 'react-native';
 import { constVoid, flow, pipe } from 'fp-ts/function';
 import { memo, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { View } from 'react-native';
+import { Text, View } from 'react-native';
 import stc from 'string-to-color';
 import { MaxLength, NanoID, String1024, String32 } from '../../codecs/branded';
 import {
@@ -21,6 +22,7 @@ import { Modal } from '../Modal';
 import { Stack } from '../Stack';
 import { Workout } from '../../codecs/domain';
 import { Title } from '../Title';
+import { serializeWorkout } from '../../utils/workoutSerialization';
 
 const WorkoutNameField = memo<{ id: NanoID; value: String32 }>(
   ({ id, value }) => {
@@ -95,10 +97,32 @@ const Buttons = memo<{
     appDispatch({ type: 'deleteWorkout', id });
   };
 
+  const [copiedToClipboard, setCopiedToClipboard] = useState(false);
+
+  useEffect(() => {
+    if (!copiedToClipboard) return;
+    const timeout = setTimeout(() => {
+      setCopiedToClipboard(false);
+    }, 2000);
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, [copiedToClipboard]);
+
   const exercisesModel = useMemo(
     () => stringToExercises(workout.exercises),
     [workout.exercises],
   );
+
+  const handleSharePress = () => {
+    const hash = serializeWorkout(workout);
+    const link = `${location.origin}#${hash}`;
+    // "copying in Safari will only work if it is coming from DOM event"
+    // https://stackoverflow.com/a/65389852/233902
+    Clipboard.setString(link);
+    setCopiedToClipboard(true);
+  };
+
   const [modalIsVisible, setModalIsVisible] = useState(false);
 
   const handleStartPress = () => {
@@ -111,20 +135,6 @@ const Buttons = memo<{
 
   const [showOtherButtons, setShowOtherButtons] = useState(false);
 
-  if (showOtherButtons)
-    return (
-      <Stack direction="row" style={t.justifyCenter}>
-        <OutlineButton
-          title={intl.formatMessage({ defaultMessage: '←' })}
-          onPress={() => setShowOtherButtons(false)}
-        />
-        <OutlineButton
-          title={intl.formatMessage({ defaultMessage: 'Delete' })}
-          onPress={handleDeletePress}
-        />
-      </Stack>
-    );
-
   return (
     <>
       <Title title={workout.name} />
@@ -135,21 +145,43 @@ const Buttons = memo<{
           onRequestClose={handleExerciseModalRequestClose}
         />
       )}
-      <Stack direction="row" style={t.justifyCenter}>
-        <PrimaryButton
-          title={intl.formatMessage({ defaultMessage: 'Start' })}
-          disabled={option.isNone(exercisesModel)}
-          onPress={handleStartPress}
-        />
-        <OutlineButton
-          title={intl.formatMessage({ defaultMessage: 'Close' })}
-          onPress={onRequestClose}
-        />
-        <OutlineButton
-          title={intl.formatMessage({ defaultMessage: '…' })}
-          onPress={() => setShowOtherButtons(true)}
-        />
-      </Stack>
+      {copiedToClipboard ? (
+        <Text style={[t.text, t.color, t.textCenter, t.pvSm]}>
+          {intl.formatMessage({ defaultMessage: 'Copied to clipboard.' })}
+        </Text>
+      ) : showOtherButtons ? (
+        <Stack direction="row" style={t.justifyCenter}>
+          <OutlineButton
+            title={intl.formatMessage({ defaultMessage: '…' })}
+            onPress={() => setShowOtherButtons(false)}
+          />
+          <OutlineButton
+            title={intl.formatMessage({ defaultMessage: 'Delete' })}
+            onPress={handleDeletePress}
+          />
+          <PrimaryButton
+            title={intl.formatMessage({ defaultMessage: 'Share' })}
+            disabled={option.isNone(exercisesModel)}
+            onPress={handleSharePress}
+          />
+        </Stack>
+      ) : (
+        <Stack direction="row" style={t.justifyCenter}>
+          <PrimaryButton
+            title={intl.formatMessage({ defaultMessage: 'Start' })}
+            disabled={option.isNone(exercisesModel)}
+            onPress={handleStartPress}
+          />
+          <OutlineButton
+            title={intl.formatMessage({ defaultMessage: 'Close' })}
+            onPress={onRequestClose}
+          />
+          <OutlineButton
+            title={intl.formatMessage({ defaultMessage: '…' })}
+            onPress={() => setShowOtherButtons(true)}
+          />
+        </Stack>
+      )}
     </>
   );
 });

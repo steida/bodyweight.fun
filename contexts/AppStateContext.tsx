@@ -1,7 +1,8 @@
-import { either, readonlyArray } from 'fp-ts';
-import { constVoid, pipe } from 'fp-ts/function';
+import { either, option, readonlyArray } from 'fp-ts';
 import { Either } from 'fp-ts/Either';
+import { constVoid, pipe } from 'fp-ts/function';
 import { lens, optional } from 'monocle-ts';
+import { useRouter } from 'next/router';
 import {
   Dispatch,
   FC,
@@ -26,6 +27,7 @@ import { Workout } from '../codecs/domain';
 import { StorageGetError, StorageState, useStorage } from '../hooks/useStorage';
 import { createNanoID } from '../utils/createNanoID';
 import { eitherToRightOrThrow } from '../utils/eitherToRighOrThrow';
+import { deserializeWorkout } from '../utils/workoutSerialization';
 
 export interface AppState {
   isRehydrated: boolean;
@@ -37,7 +39,8 @@ type AppAction =
   | { type: 'createWorkout'; name: String32 }
   | { type: 'deleteWorkout'; id: NanoID }
   | { type: 'updateWorkoutName'; id: NanoID; value: String32 }
-  | { type: 'updateWorkoutExercises'; id: NanoID; value: String1024 };
+  | { type: 'updateWorkoutExercises'; id: NanoID; value: String1024 }
+  | { type: 'importWorkout'; workout: Workout };
 
 const reducer: Reducer<AppState, AppAction> = (state, action) => {
   switch (action.type) {
@@ -67,15 +70,14 @@ const reducer: Reducer<AppState, AppAction> = (state, action) => {
       return pipe(
         lens.id<AppState>(),
         lens.prop('workouts'),
-        lens.modify((a) => [
-          ...a,
-          {
+        lens.modify(
+          readonlyArray.appendW({
             id: createNanoID(),
             createdAt: new Date(),
             name: action.name,
             exercises: emptyString1024,
-          },
-        ]),
+          }),
+        ),
       )(state);
 
     case 'deleteWorkout':
@@ -101,6 +103,13 @@ const reducer: Reducer<AppState, AppAction> = (state, action) => {
         lens.findFirst((w) => w.id === action.id),
         optional.prop('exercises'),
         optional.modify(() => action.value),
+      )(state);
+
+    case 'importWorkout':
+      return pipe(
+        lens.id<AppState>(),
+        lens.prop('workouts'),
+        lens.modify(readonlyArray.appendW(action.workout)),
       )(state);
   }
 };
@@ -180,6 +189,29 @@ export const AppStateProvider: FC = ({ children }) => {
     if (state.isRehydrated)
       document.documentElement.classList.remove('loading');
   }, [state.isRehydrated]);
+
+  const router = useRouter();
+
+  useEffect(() => {
+    const maybeImportWorkout = () => {
+      pipe(
+        decodeURIComponent(location.hash.slice(1)),
+        deserializeWorkout,
+        option.match(constVoid, (workout) => {
+          // Remove location.hash from URL. It's weird but it works.
+          // https://stackoverflow.com/a/49373716/233902
+          history.replaceState(null, '', ' ');
+          dispatch({ type: 'importWorkout', workout });
+        }),
+      );
+    };
+    maybeImportWorkout();
+
+    window.addEventListener('hashchange', maybeImportWorkout);
+    return () => {
+      window.removeEventListener('hashchange', maybeImportWorkout);
+    };
+  }, [router.events]);
 
   return (
     <AppStateContext.Provider value={state}>

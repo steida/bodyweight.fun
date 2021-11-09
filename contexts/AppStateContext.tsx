@@ -198,9 +198,6 @@ export const AppStateProvider: FC = ({ children }) => {
         decodeURIComponent(location.hash.slice(1)),
         deserializeWorkout,
         option.match(constVoid, (workout) => {
-          // Remove location.hash from URL. It's weird but it works.
-          // https://stackoverflow.com/a/49373716/233902
-          history.replaceState(null, '', ' ');
           dispatch({ type: 'importWorkout', workout });
         }),
       );

@@ -16,7 +16,7 @@ import { stringToExercises } from '../../utils/stringToExercises';
 import { OutlineButton } from '../buttons/OutlineButton';
 import { PrimaryButton } from '../buttons/PrimaryButton';
 import { TextButton } from '../buttons/TextButton';
-import { WorkoutModal } from '../WorkoutModal';
+import { WorkoutScreens } from '../WorkoutScreens';
 import { TextField } from '../fields/TextField';
 import { Modal } from '../Modal';
 import { Stack } from '../Stack';
@@ -139,7 +139,7 @@ const Buttons = memo<{
     <>
       <Title title={workout.name} />
       {modalIsVisible && option.isSome(exercisesModel) && (
-        <WorkoutModal
+        <WorkoutScreens
           name={workout.name}
           exercises={exercisesModel.value}
           onRequestClose={handleExerciseModalRequestClose}

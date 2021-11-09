@@ -95,7 +95,7 @@ const RepetitionsScreen = memo<{
   );
 });
 
-export const WorkoutModal = memo<{
+export const WorkoutScreens = memo<{
   name: String32;
   exercises: Exercises;
   onRequestClose: () => void;

@@ -142,7 +142,8 @@ export const AppStateProvider: FC = ({ children }) => {
   const storage = useStorage(
     either.match(
       (e) => {
-        // An error can happen if the code is wrong so log it in dev mode.
+        // An error can happen if the code is wrong so log it in dev mode,
+        // but ignore an empty LocalStorage.
         if (
           process.env.NODE_ENV === 'development' &&
           e.error.type !== 'getItemReturnsNull'
@@ -167,22 +168,23 @@ export const AppStateProvider: FC = ({ children }) => {
   useEffect(() => {
     if (prevStorageStateToSave.current !== storageStateToSave) {
       prevStorageStateToSave.current = storageStateToSave;
-      // Do not save anything before rehydrate.
+      // Do not save anything before the storage is rehydrated.
       if (!state.isRehydrated) return;
-      // Fire and forget, we don't care about errors nor result.
+      // Fire and forget, it should never throw anyway because
+      // private browsing in Safari is already fixed.
+      // There is not much we can do anyway.
       storage.set(storageStateToSave)();
     }
   });
 
-  useEffect(() => {
-    if (state.isRehydrated)
-      document.documentElement.classList.remove('loading');
-  }, [state.isRehydrated]);
-
   const router = useRouter();
 
   useEffect(() => {
-    const maybeImportWorkout = () => {
+    if (!state.isRehydrated) return;
+    document.documentElement.classList.remove('loading');
+
+    const handleHashChange = () => {
+      // Do not import anything before the storage is rehydrated.
       pipe(
         decodeURIComponent(location.hash.slice(1)),
         deserializeWorkout,
@@ -197,13 +199,13 @@ export const AppStateProvider: FC = ({ children }) => {
       );
     };
 
-    maybeImportWorkout();
+    handleHashChange();
 
-    window.addEventListener('hashchange', maybeImportWorkout);
+    window.addEventListener('hashchange', handleHashChange);
     return () => {
-      window.removeEventListener('hashchange', maybeImportWorkout);
+      window.removeEventListener('hashchange', handleHashChange);
     };
-  }, [router]);
+  }, [router, state.isRehydrated]);
 
   return (
     <AppStateContext.Provider value={state}>

@@ -220,6 +220,7 @@ const WorkoutPageWithID: FC<{ id: NanoID }> = ({ id }) => {
   return pipe(
     workout,
     option.match(
+      // Here we can render something like "Workout does not exist."
       () => <Page404 />,
       (workout) => <WorkoutForm workout={workout} />,
     ),

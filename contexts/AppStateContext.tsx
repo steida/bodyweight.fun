@@ -23,6 +23,7 @@ import { Route } from '../codecs/routing';
 import { StorageGetError, StorageState, useStorage } from '../hooks/useStorage';
 import { createNanoID } from '../utils/createNanoID';
 import { eitherToRightOrThrow } from '../utils/eitherToRighOrThrow';
+import { ensureUniqueWorkoutName } from '../utils/ensureUniqueWorkoutName';
 import { deserializeWorkout } from '../utils/workoutSerialization';
 
 export interface AppState {
@@ -98,7 +99,11 @@ const reducer: Reducer<AppState, AppAction> = (state, action) => {
       return pipe(
         lens.id<AppState>(),
         lens.prop('workouts'),
-        lens.modify(readonlyArray.appendW(action.workout)),
+        lens.modify(
+          readonlyArray.appendW(
+            pipe(state.workouts, ensureUniqueWorkoutName(action.workout)),
+          ),
+        ),
       )(state);
   }
 };

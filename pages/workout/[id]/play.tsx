@@ -1,22 +1,28 @@
-import { option, readonlyArray } from 'fp-ts';
-import { decrement, increment, pipe } from 'fp-ts/function';
+import { either, option, readonlyArray, record } from 'fp-ts';
+import { constNull, decrement, flow, increment, pipe } from 'fp-ts/function';
+import { useRouter } from 'next/router';
 import {
   FC,
   KeyboardEvent,
   memo,
   useCallback,
   useEffect,
+  useMemo,
   useState,
 } from 'react';
 import { useIntl } from 'react-intl';
-import { Modal, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { useSpring } from 'react-spring';
-import { String32 } from '../codecs/branded';
-import { Exercise, Exercises } from '../codecs/domain';
-import { useTheme } from '../contexts/ThemeContext';
-import { AnimatedView } from './AnimatedView';
-import { FitText } from './FitText';
-import { Title } from './Title';
+import { NanoID } from '../../../codecs/branded';
+import { Exercise, Exercises, Workout } from '../../../codecs/domain';
+import { Route, WorkoutPlayRoute } from '../../../codecs/routing';
+import { AnimatedView } from '../../../components/AnimatedView';
+import { FitText } from '../../../components/FitText';
+import { Title } from '../../../components/Title';
+import { useAppState } from '../../../contexts/AppStateContext';
+import { useTheme } from '../../../contexts/ThemeContext';
+import { workoutToExercises } from '../../../utils/workoutToExercises';
+import Page404 from '../../404';
 
 const Screen: FC<{ name: string }> = ({ name, children }) => {
   const t = useTheme();
@@ -95,17 +101,17 @@ const RepetitionsScreen = memo<{
   );
 });
 
-export const WorkoutScreens = memo<{
-  name: String32;
-  exercises: Exercises;
-  onRequestClose: () => void;
-}>(({ exercises: { exercises, rounds }, onRequestClose }) => {
+const WorkoutPlay: FC<{ id: NanoID; exercises: Exercises }> = ({
+  id,
+  exercises: { exercises, rounds },
+}) => {
   const intl = useIntl();
   const t = useTheme();
   const [currentRound, setCurrentRound] = useState(0);
   const [currentExercise, setCurrentExercise] = useState(0);
   const exercise = pipe(exercises, readonlyArray.lookup(currentExercise));
   const [animIsPending, setAnimIsPending] = useState(false);
+  const router = useRouter();
 
   const handleSpringStart = useCallback(() => {
     setAnimIsPending(true);
@@ -120,6 +126,14 @@ export const WorkoutScreens = memo<{
     onStart: handleSpringStart,
     onRest: handleSpringRest,
   });
+
+  const onRequestClose = useCallback(() => {
+    const route: Route = {
+      pathname: '/workout/[id]',
+      query: { id },
+    };
+    router.push(route);
+  }, [id, router]);
 
   useEffect(() => {
     if (option.isNone(exercise)) onRequestClose();
@@ -188,7 +202,7 @@ export const WorkoutScreens = memo<{
   };
 
   return (
-    <Modal visible onRequestClose={onRequestClose}>
+    <>
       <Title title={exercise.value.name} />
       <View style={[t.absolute, t.inset, t.overflowHidden]}>
         <AnimatedView
@@ -232,6 +246,51 @@ export const WorkoutScreens = memo<{
         // @ts-expect-error RNfW
         onKeyDown={handleKeyDown}
       />
-    </Modal>
+    </>
   );
-});
+};
+
+const WorkoutPlayPageWithWorkout: FC<{ workout: Workout }> = ({ workout }) => {
+  const exercises = useMemo(() => workoutToExercises(workout), [workout]);
+
+  return pipe(
+    exercises,
+    // constNull can happen only if another tab invalidated exercises string.
+    // Render nothing is probably the best.
+    option.match(constNull, (exercises) => (
+      <WorkoutPlay id={workout.id} exercises={exercises} />
+    )),
+  );
+};
+
+const WorkoutPlayPageWithID: FC<{ id: NanoID }> = ({ id }) => {
+  const workout = useAppState(
+    flow(
+      (s) => s.workouts,
+      readonlyArray.findFirst((w) => w.id === id),
+    ),
+  );
+
+  return pipe(
+    workout,
+    option.match(
+      () => <Page404 />,
+      (workout) => <WorkoutPlayPageWithWorkout workout={workout} />,
+    ),
+  );
+};
+
+const WorkoutPlayPage = () => {
+  const router = useRouter();
+  if (record.isEmpty(router.query)) return null;
+
+  return pipe(
+    WorkoutPlayRoute.decode(router),
+    either.match(
+      () => <Page404 />,
+      ({ query: { id } }) => <WorkoutPlayPageWithID id={id} />,
+    ),
+  );
+};
+
+export default WorkoutPlayPage;

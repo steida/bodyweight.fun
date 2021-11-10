@@ -8,7 +8,7 @@ import {
 } from 'fp-ts';
 import { regExp } from 'fp-ts-contrib';
 import { constant, flow, pipe } from 'fp-ts/function';
-import { Exercise, Exercises } from '../codecs/domain';
+import { Exercise, Exercises, Workout } from '../codecs/domain';
 
 // \n is not enough
 const lineBreakRegex = pipe(
@@ -85,35 +85,37 @@ const stringToRepetitionsExercise = flow(
   ),
 );
 
-export const stringToExercises = flow(
-  regExp.split(lineBreakRegex),
-  readonlyArray.map(string.trim),
-  readonlyArray.filter(predicate.not(string.isEmpty)),
-  readonlyArray.partition(regExp.test(roundsRegex)),
-  ({ left, right }) => ({
-    exercises: left.map((s) =>
-      pipe(
-        stringToSecondsExercise(s),
-        option.alt(() => stringToMinutesExercise(s)),
-        option.alt(() => stringToRepetitionsExercise(s)),
-        option.getOrElse(
-          (): Exercise => ({ type: 'noParams', name: s.trim() }),
+export const workoutToExercises = (workout: Workout) =>
+  pipe(
+    workout.exercises,
+    regExp.split(lineBreakRegex),
+    readonlyArray.map(string.trim),
+    readonlyArray.filter(predicate.not(string.isEmpty)),
+    readonlyArray.partition(regExp.test(roundsRegex)),
+    ({ left, right }) => ({
+      exercises: left.map((s) =>
+        pipe(
+          stringToSecondsExercise(s),
+          option.alt(() => stringToMinutesExercise(s)),
+          option.alt(() => stringToRepetitionsExercise(s)),
+          option.getOrElse(
+            (): Exercise => ({ type: 'noParams', name: s.trim() }),
+          ),
         ),
       ),
+      rounds: pipe(
+        readonlyArray.head(right),
+        option.chain(regExp.match(roundsRegex)),
+        option.map((a) => Number(a[1])),
+        option.getOrElse(constant(1)),
+      ),
+    }),
+    option.of,
+    option.bindTo('x'),
+    option.bind('exercises', ({ x: { exercises } }) =>
+      readonlyNonEmptyArray.fromReadonlyArray(exercises),
     ),
-    rounds: pipe(
-      readonlyArray.head(right),
-      option.chain(regExp.match(roundsRegex)),
-      option.map((a) => Number(a[1])),
-      option.getOrElse(constant(1)),
+    option.map(
+      ({ exercises, x: { rounds } }): Exercises => ({ exercises, rounds }),
     ),
-  }),
-  option.of,
-  option.bindTo('x'),
-  option.bind('exercises', ({ x: { exercises } }) =>
-    readonlyNonEmptyArray.fromReadonlyArray(exercises),
-  ),
-  option.map(
-    ({ exercises, x: { rounds } }): Exercises => ({ exercises, rounds }),
-  ),
-);
+  );

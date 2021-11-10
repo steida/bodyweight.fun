@@ -17,13 +17,9 @@ import {
   useContext,
   useContextSelector,
 } from 'use-context-selector';
-import {
-  emptyString1024,
-  NanoID,
-  String1024,
-  String32,
-} from '../codecs/branded';
+import { NanoID, String1024, String32 } from '../codecs/branded';
 import { Workout } from '../codecs/domain';
+import { Route } from '../codecs/routing';
 import { StorageGetError, StorageState, useStorage } from '../hooks/useStorage';
 import { createNanoID } from '../utils/createNanoID';
 import { eitherToRightOrThrow } from '../utils/eitherToRighOrThrow';
@@ -36,7 +32,7 @@ export interface AppState {
 
 type AppAction =
   | { type: 'rehydrate'; either: Either<StorageGetError, StorageState> }
-  | { type: 'createWorkout'; name: String32 }
+  | { type: 'createWorkout'; workout: Workout }
   | { type: 'deleteWorkout'; id: NanoID }
   | { type: 'updateWorkoutName'; id: NanoID; value: String32 }
   | { type: 'updateWorkoutExercises'; id: NanoID; value: String1024 }
@@ -70,14 +66,7 @@ const reducer: Reducer<AppState, AppAction> = (state, action) => {
       return pipe(
         lens.id<AppState>(),
         lens.prop('workouts'),
-        lens.modify(
-          readonlyArray.appendW({
-            id: createNanoID(),
-            createdAt: new Date(),
-            name: action.name,
-            exercises: emptyString1024,
-          }),
-        ),
+        lens.modify(readonlyArray.appendW(action.workout)),
       )(state);
 
     case 'deleteWorkout':
@@ -199,16 +188,22 @@ export const AppStateProvider: FC = ({ children }) => {
         deserializeWorkout,
         option.match(constVoid, (workout) => {
           dispatch({ type: 'importWorkout', workout });
+          const route: Route = {
+            pathname: '/workout/[id]',
+            query: { id: workout.id },
+          };
+          router.push(route);
         }),
       );
     };
+
     maybeImportWorkout();
 
     window.addEventListener('hashchange', maybeImportWorkout);
     return () => {
       window.removeEventListener('hashchange', maybeImportWorkout);
     };
-  }, [router.events]);
+  }, [router]);
 
   return (
     <AppStateContext.Provider value={state}>

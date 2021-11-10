@@ -1,13 +1,11 @@
 import { useIntl } from 'react-intl';
-import { View } from 'react-native';
 import { CreateWorkoutForm } from '../components/forms/CreateWorkoutForm';
-import { Title } from '../components/Title';
 import { WorkoutsList } from '../components/lists/WorkoutsList';
-import { useTheme } from '../contexts/ThemeContext';
+import { Title } from '../components/Title';
+import { ViewHiddenUntilStorageIsRehydrated } from '../components/ViewHiddenUntilStorageIsRehydrated';
 
 const Home = () => {
   const intl = useIntl();
-  const t = useTheme();
 
   return (
     <>
@@ -16,20 +14,10 @@ const Home = () => {
           defaultMessage: 'Your calisthenics trainer',
         })}
       />
-      <View
-        // @ts-expect-error RNfW
-        dataSet={{ loading: 'hidden' }}
-        style={[
-          t.itemsCenter,
-          t.justifyCenter,
-          // https://twitter.com/estejs/status/1455272409385340936
-          { minHeight: '100vh' },
-        ]}
-      >
+      <ViewHiddenUntilStorageIsRehydrated>
         <WorkoutsList />
-        {/* Consider floating like LandB MainNav. */}
         <CreateWorkoutForm />
-      </View>
+      </ViewHiddenUntilStorageIsRehydrated>
     </>
   );
 };

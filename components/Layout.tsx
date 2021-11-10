@@ -7,7 +7,11 @@ export const Layout: FC = ({ children }) => {
 
   return (
     <SafeAreaView>
-      <View style={t.ph}>{children}</View>
+      <View
+        style={[t.justifyCenter, t.itemsCenter, t.viewportHeightMin100, t.ph]}
+      >
+        {children}
+      </View>
     </SafeAreaView>
   );
 };

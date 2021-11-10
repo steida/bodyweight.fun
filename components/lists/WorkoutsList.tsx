@@ -1,64 +1,55 @@
-import { memo, useCallback, useState } from 'react';
+import { useRouter } from 'next/router';
+import { memo } from 'react';
 import { Pressable, Text } from 'react-native';
 import stc from 'string-to-color';
-import { NanoID } from '../../codecs/branded';
 import { Workout } from '../../codecs/domain';
+import { Route } from '../../codecs/routing';
 import { useAppState } from '../../contexts/AppStateContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { InsetBorder } from '../InsetBorder';
-import { WorkoutDetailForm } from '../forms/WorkoutDetailForm';
 
-const WorkoutItem = memo<{ workout: Workout; onPress: (id: NanoID) => void }>(
-  ({ workout, onPress }) => {
-    const t = useTheme();
+const WorkoutItem = memo<{ workout: Workout }>(({ workout }) => {
+  const t = useTheme();
+  const router = useRouter();
 
-    return (
-      <Pressable
-        style={[t.mvSm, t.p, t.maxWFull]}
-        accessibilityRole="button"
-        onPress={() => {
-          onPress(workout.id);
-        }}
+  const handlePressablePress = () => {
+    const route: Route = {
+      pathname: '/workout/[id]',
+      query: { id: workout.id },
+    };
+    router.push(route);
+  };
+
+  // TODO: Pressable should be Link, but we have to
+  // sync LocalStorage across tabs first. It's must.
+  return (
+    <Pressable
+      style={[t.mvSm, t.p, t.maxWFull]}
+      accessibilityRole="button"
+      onPress={handlePressablePress}
+    >
+      <InsetBorder style={[t.shadow, { shadowColor: stc(workout.name) }]} />
+      <Text
+        // numberOfLines clips emojis because it adds overflow-y: hidden;
+        // I don't think we need it. Only wwwwwwwwwwwwwwwwwwwwwwww wraps.
+        // numberOfLines={1}
+        selectable={false}
+        style={[t.text, t.color]}
       >
-        <InsetBorder style={[t.shadow, { shadowColor: stc(workout.name) }]} />
-        <Text
-          // numberOfLines clips emojis because it adds overflow-y: hidden;
-          // I don't think we need it. Only wwwwwwwwwwwwwwwwwwwwwwww wraps.
-          // numberOfLines={1}
-          selectable={false}
-          style={[t.text, t.color]}
-        >
-          {workout.name}
-        </Text>
-      </Pressable>
-    );
-  },
-);
+        {workout.name}
+      </Text>
+    </Pressable>
+  );
+});
 
 export const WorkoutsList = () => {
   const workouts = useAppState((s) => s.workouts);
 
-  const [shownWorkoutID, setShownWorkoutID] = useState<NanoID | null>(null);
-
-  const handleWorkoutItemPress = useCallback((id: NanoID) => {
-    setShownWorkoutID(id);
-  }, []);
-
-  const handleWorkoutDetailClose = useCallback(() => {
-    setShownWorkoutID(null);
-  }, []);
-
   return (
     <>
       {workouts.map((w) => (
-        <WorkoutItem workout={w} key={w.id} onPress={handleWorkoutItemPress} />
+        <WorkoutItem workout={w} key={w.id} />
       ))}
-      {shownWorkoutID && (
-        <WorkoutDetailForm
-          id={shownWorkoutID}
-          onRequestClose={handleWorkoutDetailClose}
-        />
-      )}
     </>
   );
 };

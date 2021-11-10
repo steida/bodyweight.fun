@@ -4,7 +4,7 @@ import { pipe } from 'fp-ts/function';
 import { useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { View } from 'react-native';
-import { MaxLength, String32 } from '../../codecs/branded';
+import { emptyString1024, MaxLength, String32 } from '../../codecs/branded';
 import { PrimaryButton } from '../buttons/PrimaryButton';
 import { TextField, TextFieldRef } from '../fields/TextField';
 import { useAppDispatch } from '../../contexts/AppStateContext';
@@ -12,6 +12,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { OutlineButton } from '../buttons/OutlineButton';
 import { Modal } from '../Modal';
 import { Stack } from '../Stack';
+import { createWorkout } from '../../utils/createWorkout';
 
 const CreateWorkoutFormModal = ({
   onRequestClose,
@@ -39,7 +40,10 @@ const CreateWorkoutFormModal = ({
         },
         (name) => {
           Fathom.trackGoal('8NAL5VZS', 0);
-          appDispatch({ type: 'createWorkout', name });
+          appDispatch({
+            type: 'createWorkout',
+            workout: createWorkout(name, emptyString1024),
+          });
           onRequestClose();
         },
       ),

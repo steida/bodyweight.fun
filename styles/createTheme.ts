@@ -347,9 +347,13 @@ export const createTheme = (colorScheme: ColorSchemeName) =>
       width: fontSize * 13,
     },
 
-    // I suppose it should have better performance then percents from parents.
+    // I suppose it has better performance than percents from parents.
     viewportWidth100: {
       width: '100vw',
+    },
+
+    viewportHeightMin100: {
+      minHeight: '100vh',
     },
 
     noOutline: {

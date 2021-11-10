@@ -5,7 +5,7 @@ import { flow, pipe } from 'fp-ts/function';
 import { Option } from 'fp-ts/Option';
 import { String1024, String32 } from '../codecs/branded';
 import { Workout } from '../codecs/domain';
-import { createNanoID } from './createNanoID';
+import { createWorkout } from './createWorkout';
 
 // \n is not enough
 const allLineBreakRegex = pipe(
@@ -49,14 +49,7 @@ export const deserializeWorkout = (s: string): Option<Workout> => {
       String32.decode(name),
       String1024.decode(exercises),
     ),
-    either.map(
-      ([name, exercises]): Workout => ({
-        id: createNanoID(),
-        createdAt: new Date(),
-        name,
-        exercises,
-      }),
-    ),
+    either.map(([name, exercises]) => createWorkout(name, exercises)),
     option.fromEither,
   );
 };

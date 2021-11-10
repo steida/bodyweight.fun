@@ -1,28 +1,34 @@
-import { either, option, readonlyArray } from 'fp-ts';
-import { Clipboard } from 'react-native';
+import { either, option, readonlyArray, record } from 'fp-ts';
 import { constVoid, flow, pipe } from 'fp-ts/function';
-import { memo, useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/router';
+import { FC, memo, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { Text, View } from 'react-native';
+import { Clipboard, Text, View } from 'react-native';
 import stc from 'string-to-color';
-import { MaxLength, NanoID, String1024, String32 } from '../../codecs/branded';
+import {
+  MaxLength,
+  NanoID,
+  String1024,
+  String32,
+} from '../../../codecs/branded';
+import { Workout } from '../../../codecs/domain';
+import { Route, WorkoutRoute } from '../../../codecs/routing';
+import { OutlineButton } from '../../../components/buttons/OutlineButton';
+import { PrimaryButton } from '../../../components/buttons/PrimaryButton';
+import { TextButton } from '../../../components/buttons/TextButton';
+import { TextField } from '../../../components/fields/TextField';
+import { InsetBorder } from '../../../components/InsetBorder';
+import { Stack } from '../../../components/Stack';
+import { Title } from '../../../components/Title';
 import {
   initialAppState,
   useAppDispatch,
   useAppState,
-} from '../../contexts/AppStateContext';
-import { useTheme } from '../../contexts/ThemeContext';
-import { stringToExercises } from '../../utils/stringToExercises';
-import { OutlineButton } from '../buttons/OutlineButton';
-import { PrimaryButton } from '../buttons/PrimaryButton';
-import { TextButton } from '../buttons/TextButton';
-import { WorkoutScreens } from '../WorkoutScreens';
-import { TextField } from '../fields/TextField';
-import { Modal } from '../Modal';
-import { Stack } from '../Stack';
-import { Workout } from '../../codecs/domain';
-import { Title } from '../Title';
-import { serializeWorkout } from '../../utils/workoutSerialization';
+} from '../../../contexts/AppStateContext';
+import { useTheme } from '../../../contexts/ThemeContext';
+import { workoutToExercises } from '../../../utils/workoutToExercises';
+import { serializeWorkout } from '../../../utils/workoutSerialization';
+import Page404 from '../../404';
 
 const WorkoutNameField = memo<{ id: NanoID; value: String32 }>(
   ({ id, value }) => {
@@ -87,14 +93,16 @@ const WorkoutExercisesField = memo<{ id: NanoID; value: String1024 }>(
 const Buttons = memo<{
   id: NanoID;
   workout: Workout;
-  onRequestClose: () => void;
-}>(({ id, workout, onRequestClose }) => {
+}>(({ id, workout }) => {
   const t = useTheme();
   const intl = useIntl();
   const appDispatch = useAppDispatch();
+  const router = useRouter();
 
   const handleDeletePress = () => {
     appDispatch({ type: 'deleteWorkout', id });
+    const route: Route = { pathname: '/' };
+    router.push(route);
   };
 
   const [copiedToClipboard, setCopiedToClipboard] = useState(false);
@@ -109,10 +117,7 @@ const Buttons = memo<{
     };
   }, [copiedToClipboard]);
 
-  const exercisesModel = useMemo(
-    () => stringToExercises(workout.exercises),
-    [workout.exercises],
-  );
+  const exercisesModel = useMemo(() => workoutToExercises(workout), [workout]);
 
   const handleSharePress = () => {
     const hash = serializeWorkout(workout);
@@ -123,14 +128,14 @@ const Buttons = memo<{
     setCopiedToClipboard(true);
   };
 
-  const [modalIsVisible, setModalIsVisible] = useState(false);
-
   const handleStartPress = () => {
-    setModalIsVisible(true);
+    const route: Route = { pathname: '/workout/[id]/play', query: { id } };
+    router.push(route);
   };
 
-  const handleExerciseModalRequestClose = () => {
-    setModalIsVisible(false);
+  const handleClosePress = () => {
+    const route: Route = { pathname: '/' };
+    router.push(route);
   };
 
   const [showOtherButtons, setShowOtherButtons] = useState(false);
@@ -138,13 +143,6 @@ const Buttons = memo<{
   return (
     <>
       <Title title={workout.name} />
-      {modalIsVisible && option.isSome(exercisesModel) && (
-        <WorkoutScreens
-          name={workout.name}
-          exercises={exercisesModel.value}
-          onRequestClose={handleExerciseModalRequestClose}
-        />
-      )}
       {copiedToClipboard ? (
         <Text style={[t.text, t.color, t.textCenter, t.pvSm]}>
           {intl.formatMessage({ defaultMessage: 'Copied to clipboard.' })}
@@ -167,6 +165,10 @@ const Buttons = memo<{
         </Stack>
       ) : (
         <Stack direction="row" style={t.justifyCenter}>
+          {/*
+            TODO: Start and Close should be links, but we have to
+            sync LocalStorage across tabs first. It's must.
+           */}
           <PrimaryButton
             title={intl.formatMessage({ defaultMessage: 'Start' })}
             disabled={option.isNone(exercisesModel)}
@@ -174,7 +176,7 @@ const Buttons = memo<{
           />
           <OutlineButton
             title={intl.formatMessage({ defaultMessage: 'Close' })}
-            onPress={onRequestClose}
+            onPress={handleClosePress}
           />
           <OutlineButton
             title={intl.formatMessage({ defaultMessage: '…' })}
@@ -186,36 +188,59 @@ const Buttons = memo<{
   );
 });
 
-export const WorkoutDetailForm = memo<{
-  id: NanoID;
-  onRequestClose: () => void;
-}>(({ id, onRequestClose }) => {
+const WorkoutForm: FC<{ workout: Workout }> = ({ workout }) => {
   const t = useTheme();
+  const shadowColor = stc(workout.name);
 
-  const workout = useAppState((s) =>
-    pipe(
-      s.workouts,
+  return (
+    <View style={[t.pv, t.phLg]}>
+      <InsetBorder
+        style={[t.shadow, t.bgColor, { shadowColor }]}
+        slowTransition={true}
+      />
+      <View style={[t.width13, t.mh, t.mb]}>
+        <Stack>
+          <WorkoutNameField id={workout.id} value={workout.name} />
+          <WorkoutExercisesField id={workout.id} value={workout.exercises} />
+        </Stack>
+      </View>
+      <Buttons id={workout.id} workout={workout} />
+    </View>
+  );
+};
+
+const WorkoutPageWithID: FC<{ id: NanoID }> = ({ id }) => {
+  const workout = useAppState(
+    flow(
+      (s) => s.workouts,
       readonlyArray.findFirst((w) => w.id === id),
-      option.toNullable,
     ),
   );
 
-  // Close WorkoutDetailForm when a workout is deleted.
-  useEffect(() => {
-    if (workout == null) onRequestClose();
-  }, [onRequestClose, workout]);
-
-  return (
-    workout && (
-      <Modal onRequestClose={onRequestClose} shadowColor={stc(workout.name)}>
-        <View style={[t.width13, t.mh, t.mb]}>
-          <Stack>
-            <WorkoutNameField id={workout.id} value={workout.name} />
-            <WorkoutExercisesField id={workout.id} value={workout.exercises} />
-          </Stack>
-        </View>
-        <Buttons id={id} workout={workout} onRequestClose={onRequestClose} />
-      </Modal>
-    )
+  return pipe(
+    workout,
+    option.match(
+      () => <Page404 />,
+      (workout) => <WorkoutForm workout={workout} />,
+    ),
   );
-});
+};
+
+const WorkoutPage = () => {
+  const router = useRouter();
+  // There is no reason to render anything. Only the client has data.
+  if (record.isEmpty(router.query)) return null;
+
+  return pipe(
+    WorkoutRoute.decode(router),
+    either.match(
+      // Render Page404 for the wrong query. We render Page404 also
+      // for the missing workout, but with this approach, we can render
+      // a custom workout 404 page.
+      () => <Page404 />,
+      ({ query: { id } }) => <WorkoutPageWithID id={id} />,
+    ),
+  );
+};
+
+export default WorkoutPage;

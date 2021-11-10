@@ -99,23 +99,19 @@ const Buttons = memo<{
   const appDispatch = useAppDispatch();
   const router = useRouter();
 
-  const handleDeletePress = () => {
-    appDispatch({ type: 'deleteWorkout', id });
-    const route: Route = { pathname: '/' };
-    router.push(route);
-  };
-
-  const [copiedToClipboard, setCopiedToClipboard] = useState(false);
+  const [currentView, setCurrentView] = useState<
+    'default' | 'more' | 'copiedToClipboard'
+  >('default');
 
   useEffect(() => {
-    if (!copiedToClipboard) return;
+    if (currentView !== 'copiedToClipboard') return;
     const timeout = setTimeout(() => {
-      setCopiedToClipboard(false);
+      setCurrentView('default');
     }, 2000);
     return () => {
       clearTimeout(timeout);
     };
-  }, [copiedToClipboard]);
+  }, [currentView]);
 
   const exercisesModel = useMemo(() => workoutToExercises(workout), [workout]);
 
@@ -125,7 +121,7 @@ const Buttons = memo<{
     // "copying in Safari will only work if it is coming from DOM event"
     // https://stackoverflow.com/a/65389852/233902
     Clipboard.setString(link);
-    setCopiedToClipboard(true);
+    setCurrentView('copiedToClipboard');
   };
 
   const handleStartPress = () => {
@@ -138,52 +134,67 @@ const Buttons = memo<{
     router.push(route);
   };
 
-  const [showOtherButtons, setShowOtherButtons] = useState(false);
+  const handleDeletePress = () => {
+    appDispatch({ type: 'deleteWorkout', id });
+    const route: Route = { pathname: '/' };
+    router.push(route);
+  };
+
+  const renderView = (): JSX.Element => {
+    switch (currentView) {
+      case 'default':
+        return (
+          <Stack direction="row" style={t.justifyCenter}>
+            {/*
+          TODO: Start and Close should be links, but we have to
+          sync LocalStorage across tabs first. It's must.
+         */}
+            <PrimaryButton
+              title={intl.formatMessage({ defaultMessage: 'Start' })}
+              disabled={option.isNone(exercisesModel)}
+              onPress={handleStartPress}
+            />
+            <OutlineButton
+              title={intl.formatMessage({ defaultMessage: 'Close' })}
+              onPress={handleClosePress}
+            />
+            <OutlineButton
+              title={intl.formatMessage({ defaultMessage: '…' })}
+              onPress={() => setCurrentView('more')}
+            />
+          </Stack>
+        );
+      case 'more':
+        return (
+          <Stack direction="row" style={t.justifyCenter}>
+            <OutlineButton
+              title={intl.formatMessage({ defaultMessage: '…' })}
+              onPress={() => setCurrentView('default')}
+            />
+            <OutlineButton
+              title={intl.formatMessage({ defaultMessage: 'Delete' })}
+              onPress={handleDeletePress}
+            />
+            <PrimaryButton
+              title={intl.formatMessage({ defaultMessage: 'Share' })}
+              disabled={option.isNone(exercisesModel)}
+              onPress={handleSharePress}
+            />
+          </Stack>
+        );
+      case 'copiedToClipboard':
+        return (
+          <Text style={[t.text, t.color, t.textCenter, t.pvSm]}>
+            {intl.formatMessage({ defaultMessage: 'Copied to clipboard.' })}
+          </Text>
+        );
+    }
+  };
 
   return (
     <>
       <Title title={workout.name} />
-      {copiedToClipboard ? (
-        <Text style={[t.text, t.color, t.textCenter, t.pvSm]}>
-          {intl.formatMessage({ defaultMessage: 'Copied to clipboard.' })}
-        </Text>
-      ) : showOtherButtons ? (
-        <Stack direction="row" style={t.justifyCenter}>
-          <OutlineButton
-            title={intl.formatMessage({ defaultMessage: '…' })}
-            onPress={() => setShowOtherButtons(false)}
-          />
-          <OutlineButton
-            title={intl.formatMessage({ defaultMessage: 'Delete' })}
-            onPress={handleDeletePress}
-          />
-          <PrimaryButton
-            title={intl.formatMessage({ defaultMessage: 'Share' })}
-            disabled={option.isNone(exercisesModel)}
-            onPress={handleSharePress}
-          />
-        </Stack>
-      ) : (
-        <Stack direction="row" style={t.justifyCenter}>
-          {/*
-            TODO: Start and Close should be links, but we have to
-            sync LocalStorage across tabs first. It's must.
-           */}
-          <PrimaryButton
-            title={intl.formatMessage({ defaultMessage: 'Start' })}
-            disabled={option.isNone(exercisesModel)}
-            onPress={handleStartPress}
-          />
-          <OutlineButton
-            title={intl.formatMessage({ defaultMessage: 'Close' })}
-            onPress={handleClosePress}
-          />
-          <OutlineButton
-            title={intl.formatMessage({ defaultMessage: '…' })}
-            onPress={() => setShowOtherButtons(true)}
-          />
-        </Stack>
-      )}
+      {renderView()}
     </>
   );
 });

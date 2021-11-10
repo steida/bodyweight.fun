@@ -15,7 +15,9 @@ const Home = () => {
         })}
       />
       <ViewHiddenUntilStorageIsRehydrated>
+        {/* Items with width by their contents: <View style={t.itemsCenter}> */}
         <WorkoutsList />
+        {/* </View> */}
         <CreateWorkoutForm />
       </ViewHiddenUntilStorageIsRehydrated>
     </>

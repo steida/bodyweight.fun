@@ -30,7 +30,7 @@ export const ensureUniqueWorkoutName: (
     readonlyArray.map((w) => w.name),
     readonlyArray.filterMap(regExp.match(nameWithIndex)),
     option.fromPredicate(readonlyArray.isNonEmpty),
-    option.map(readonlyArray.map((r) => Number(r[1] || 0))),
+    option.map(readonlyArray.map((r) => Number(r[1] || 1))),
     option.map(monoid.concatAll(monoid.max(number.Bounded))),
     option.map((i) => `${workout.name} ${i + 1}`),
     option.chainEitherK(String32.decode),

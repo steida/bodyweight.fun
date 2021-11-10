@@ -22,19 +22,24 @@ const allWhitespaceRegex = pipe(
   expression.toRegex,
 );
 
+const lineBreakReplacement = '+';
+const whitespaceReplacement = '_';
+
 // Replacer are rate, still should be escaped.
 const serialize = flow(
-  string.replace(allLineBreakRegex, '·'),
-  string.replace(allWhitespaceRegex, '_'),
+  string.replace(allLineBreakRegex, lineBreakReplacement),
+  string.replace(allWhitespaceRegex, whitespaceReplacement),
 );
 
 const deserialize = (s: string) =>
-  s.replaceAll('·', '\n').replaceAll('_', ' ').trim();
+  s
+    .replaceAll(lineBreakReplacement, '\n')
+    .replaceAll(whitespaceReplacement, ' ')
+    .trim();
 
 // Almost everything is allowed. Percent-encoding for UTF ins't required
-// for modern browers, I think. We want readable URLs. Let's see.
+// for modern browsers, I think. We want readable URLs. Let's see.
 // https://stackoverflow.com/questions/26088849/url-fragment-allowed-characters
-// an_example:stretching_1m·jumping_jacks_1m·push-ups_20x·sit-ups_20x·relax_🧘·plank_30s··2x
 export const serializeWorkout = (workout: Workout) =>
   `${serialize(workout.name)}:${serialize(workout.exercises)}`;
 

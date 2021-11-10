@@ -1,6 +1,7 @@
 import { either, option, readonlyArray } from 'fp-ts';
 import { Either } from 'fp-ts/Either';
 import { constVoid, pipe } from 'fp-ts/function';
+import { IO } from 'fp-ts/IO';
 import { lens, optional } from 'monocle-ts';
 import { useRouter } from 'next/router';
 import {
@@ -185,26 +186,32 @@ export const AppStateProvider: FC = ({ children }) => {
   const router = useRouter();
 
   useEffect(() => {
+    // Do not import anything before the storage is rehydrated.
     if (!state.isRehydrated) return;
-    document.documentElement.classList.remove('loading');
 
-    const handleHashChange = () => {
-      // Do not import anything before the storage is rehydrated.
+    const tryImportWorkout = (callback: IO<void>) =>
       pipe(
         decodeURIComponent(location.hash.slice(1)),
         deserializeWorkout,
-        option.match(constVoid, (workout) => {
+        option.match(callback, (workout) => {
           dispatch({ type: 'importWorkout', workout });
           const route: Route = {
             pathname: '/workout/[id]',
             query: { id: workout.id },
           };
-          router.push(route);
+          // Postpone loading class remove until the route is loaded.
+          // Replace, so back button will not repeat an import.
+          router.replace(route).finally(callback);
         }),
       );
-    };
 
-    handleHashChange();
+    tryImportWorkout(() => {
+      document.documentElement.classList.remove('loading');
+    });
+
+    const handleHashChange = () => {
+      tryImportWorkout(constVoid);
+    };
 
     window.addEventListener('hashchange', handleHashChange);
     return () => {

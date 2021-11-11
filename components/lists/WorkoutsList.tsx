@@ -1,14 +1,24 @@
+import { eq } from 'fp-ts';
+import { Eq } from 'fp-ts/Eq';
 import { useRouter } from 'next/router';
 import { memo } from 'react';
 import { Pressable, Text } from 'react-native';
 import stc from 'string-to-color';
-import { Workout } from '../../codecs/domain';
+import { eqWorkout, Workout } from '../../codecs/domain';
 import { Route } from '../../codecs/routing';
 import { useAppState } from '../../contexts/AppStateContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { InsetBorder } from '../InsetBorder';
 
-const WorkoutItem = memo<{ workout: Workout }>(({ workout }) => {
+interface WorkoutItemProps {
+  workout: Workout;
+}
+
+const eqWorkoutItemProps: Eq<{ workout: Workout }> = eq.struct({
+  workout: eqWorkout,
+});
+
+const WorkoutItem = memo<WorkoutItemProps>(({ workout }) => {
   const t = useTheme();
   const router = useRouter();
 
@@ -40,7 +50,7 @@ const WorkoutItem = memo<{ workout: Workout }>(({ workout }) => {
       </Text>
     </Pressable>
   );
-});
+}, eqWorkoutItemProps.equals);
 
 export const WorkoutsList = () => {
   const workouts = useAppState((s) => s.workouts);

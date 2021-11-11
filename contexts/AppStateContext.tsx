@@ -8,6 +8,7 @@ import {
   Dispatch,
   FC,
   Reducer,
+  useCallback,
   useEffect,
   useMemo,
   useReducer,
@@ -153,9 +154,11 @@ export const useAppDispatch = () => useContext(AppDispatchContext);
 export const AppStateProvider: FC = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialAppState);
 
-  const storage = useStorage((either) => {
-    dispatch({ type: 'rehydrate', either });
-  });
+  const storage = useStorage(
+    useCallback((either) => {
+      dispatch({ type: 'rehydrate', either });
+    }, []),
+  );
 
   const storageStateToSave: StorageState = useMemo(
     () => ({ workouts: state.workouts }),
@@ -172,7 +175,7 @@ export const AppStateProvider: FC = ({ children }) => {
       // Do not save anything before the storage is rehydrated
       // or it was rehydrated with a decode error.
       // Decode error means another browser tab with a newer script
-      // version updated LocalStorage therefore, the current browser
+      // version updated LocalStorage, therefore, the current browser
       // tab can't decode it so the app has to ask a user for reload.
       // Outdated app is not allowed to save, otherwise data would be lost.
       if (
@@ -181,6 +184,7 @@ export const AppStateProvider: FC = ({ children }) => {
           isSeriousStorageGetError(state.storageGetError))
       )
         return;
+
       // Fire and forget. It should never throw anyway because private
       // browsing in Safari has been fixed and old Edge is dead.
       // There is not much we can do anyway.

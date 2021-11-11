@@ -21,7 +21,12 @@ import {
 import { NanoID, String1024, String32 } from '../codecs/branded';
 import { Workout } from '../codecs/domain';
 import { Route } from '../codecs/routing';
-import { StorageGetError, StorageState, useStorage } from '../hooks/useStorage';
+import {
+  isSeriousStorageGetError,
+  StorageGetError,
+  StorageState,
+  useStorage,
+} from '../hooks/useStorage';
 import { createNanoID } from '../utils/createNanoID';
 import { eitherToRightOrThrow } from '../utils/eitherToRighOrThrow';
 import { ensureUniqueWorkoutName } from '../utils/ensureUniqueWorkoutName';
@@ -29,6 +34,7 @@ import { deserializeWorkout } from '../utils/workoutSerialization';
 
 export interface AppState {
   isRehydrated: boolean;
+  storageGetError: StorageGetError | null;
   workouts: ReadonlyArray<Workout>;
 }
 
@@ -46,21 +52,22 @@ const reducer: Reducer<AppState, AppAction> = (state, action) => {
       return pipe(
         action.either,
         either.match(
-          () =>
+          (storageGetError) =>
             pipe(
               lens.id<AppState>(),
-              lens.prop('isRehydrated'),
-              lens.modify(() => true),
-            )(state),
+              lens.props('isRehydrated', 'storageGetError'),
+            ).set({
+              isRehydrated: true,
+              storageGetError,
+            })(state),
           (storageState) =>
             pipe(
               lens.id<AppState>(),
               lens.props('isRehydrated', 'workouts'),
-              lens.modify(() => ({
-                isRehydrated: true,
-                workouts: storageState.workouts,
-              })),
-            )(state),
+            ).set({
+              isRehydrated: true,
+              workouts: storageState.workouts,
+            })(state),
         ),
       );
 
@@ -111,6 +118,7 @@ const reducer: Reducer<AppState, AppAction> = (state, action) => {
 
 export const initialAppState: AppState = {
   isRehydrated: false,
+  storageGetError: null,
   workouts: [
     {
       id: createNanoID(),
@@ -145,24 +153,9 @@ export const useAppDispatch = () => useContext(AppDispatchContext);
 export const AppStateProvider: FC = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialAppState);
 
-  const storage = useStorage(
-    either.match(
-      (e) => {
-        // An error can happen if the code is wrong so log it in dev mode,
-        // but ignore an empty LocalStorage.
-        if (
-          process.env.NODE_ENV === 'development' &&
-          e.error.type !== 'getItemReturnsNull'
-        )
-          // eslint-disable-next-line no-console
-          console.log(e);
-        dispatch({ type: 'rehydrate', either: either.left(e) });
-      },
-      (storageState) => {
-        dispatch({ type: 'rehydrate', either: either.right(storageState) });
-      },
-    ),
-  );
+  const storage = useStorage((either) => {
+    dispatch({ type: 'rehydrate', either });
+  });
 
   const storageStateToSave: StorageState = useMemo(
     () => ({ workouts: state.workouts }),
@@ -172,12 +165,24 @@ export const AppStateProvider: FC = ({ children }) => {
   // https://twitter.com/estejs/status/1455313999902433283
   const prevStorageStateToSave = useRef(storageStateToSave);
   useEffect(() => {
+    // We can compare references safely because we use monocle-ts
+    // lens in the reducer.
     if (prevStorageStateToSave.current !== storageStateToSave) {
       prevStorageStateToSave.current = storageStateToSave;
-      // Do not save anything before the storage is rehydrated.
-      if (!state.isRehydrated) return;
-      // Fire and forget, it should never throw anyway because
-      // private browsing in Safari is already fixed.
+      // Do not save anything before the storage is rehydrated
+      // or it was rehydrated with a decode error.
+      // Decode error means another browser tab with a newer script
+      // version updated LocalStorage therefore, the current browser
+      // tab can't decode it so the app has to ask a user for reload.
+      // Outdated app is not allowed to save, otherwise data would be lost.
+      if (
+        !state.isRehydrated ||
+        (state.storageGetError &&
+          isSeriousStorageGetError(state.storageGetError))
+      )
+        return;
+      // Fire and forget. It should never throw anyway because private
+      // browsing in Safari has been fixed and old Edge is dead.
       // There is not much we can do anyway.
       storage.set(storageStateToSave)();
     }
@@ -206,7 +211,8 @@ export const AppStateProvider: FC = ({ children }) => {
       );
 
     tryImportWorkout(() => {
-      document.documentElement.classList.remove('loading');
+      if (document.documentElement.classList.contains('loading'))
+        document.documentElement.classList.remove('loading');
     });
 
     const handleHashChange = () => {

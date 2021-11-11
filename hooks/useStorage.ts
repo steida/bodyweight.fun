@@ -2,6 +2,7 @@ import { either, ioEither, taskEither } from 'fp-ts';
 import { Either } from 'fp-ts/Either';
 import { flow, pipe } from 'fp-ts/function';
 import { parse, stringify } from 'fp-ts/Json';
+import { Predicate } from 'fp-ts/Predicate';
 import { TaskEither } from 'fp-ts/TaskEither';
 import { array, literal, readonly, struct, sum, TypeOf } from 'io-ts/Codec';
 import { useEffect, useRef } from 'react';
@@ -44,6 +45,9 @@ export interface StorageGetError {
     type: 'getItem' | 'getItemReturnsNull' | 'parse' | 'decode';
   };
 }
+
+export const isSeriousStorageGetError: Predicate<StorageGetError> = (error) =>
+  error.error.type !== 'getItemReturnsNull';
 
 export interface StorageSetError {
   type: 'storageSetError';

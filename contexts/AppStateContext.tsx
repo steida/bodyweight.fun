@@ -28,7 +28,6 @@ import {
   StorageState,
   useStorage,
 } from '../hooks/useStorage';
-import { createNanoID } from '../utils/createNanoID';
 import { eitherToRightOrThrow } from '../utils/eitherToRighOrThrow';
 import { ensureUniqueWorkoutName } from '../utils/ensureUniqueWorkoutName';
 import { deserializeWorkout } from '../utils/workoutSerialization';
@@ -117,13 +116,19 @@ const reducer: Reducer<AppState, AppAction> = (state, action) => {
   }
 };
 
+// Hardcoded data must be stable because of SSR.
+const initialExampleID = eitherToRightOrThrow(
+  NanoID.decode('dnqVf58RCkaaz6YXUtJ8m'),
+);
+const initialExampleCreatedAt = '2021-11-11T23:04:38.817Z';
+
 export const initialAppState: AppState = {
   isRehydrated: false,
   storageGetError: null,
   workouts: [
     {
-      id: createNanoID(),
-      createdAt: new Date(),
+      id: initialExampleID,
+      createdAt: new Date(initialExampleCreatedAt),
       name: eitherToRightOrThrow(String32.decode('An example')),
       exercises: eitherToRightOrThrow(
         // TODO: Localize with {newLine}, { newLine: '\n' },

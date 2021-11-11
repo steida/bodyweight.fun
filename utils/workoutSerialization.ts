@@ -1,5 +1,5 @@
 import { expression } from 'expressive-ts';
-import { either, option, string } from 'fp-ts';
+import { either, option, predicate, readonlyArray, string } from 'fp-ts';
 import { sequenceT } from 'fp-ts/Apply';
 import { flow, pipe } from 'fp-ts/function';
 import { Option } from 'fp-ts/Option';
@@ -22,39 +22,39 @@ const allWhitespaceRegex = pipe(
   expression.toRegex,
 );
 
-const lineBreakReplacement = '+';
-const whitespaceReplacement = '_';
+const lineBreakReplacer = '+';
+const whitespaceReplacer = '_';
 
-// Replacer are rate, still should be escaped.
+// TODO: Escape replacers. ':' in Workout name breaks sharing.
 const serialize = flow(
-  string.replace(allLineBreakRegex, lineBreakReplacement),
-  string.replace(allWhitespaceRegex, whitespaceReplacement),
+  string.replace(allLineBreakRegex, lineBreakReplacer),
+  string.replace(allWhitespaceRegex, whitespaceReplacer),
 );
 
 const deserialize = (s: string) =>
   s
-    .replaceAll(lineBreakReplacement, '\n')
-    .replaceAll(whitespaceReplacement, ' ')
+    .replaceAll(lineBreakReplacer, '\n')
+    .replaceAll(whitespaceReplacer, ' ')
     .trim();
 
 // Almost everything is allowed. Percent-encoding for UTF ins't required
 // for modern browsers, I think. We want readable URLs. Let's see.
+// http://localhost:3000#Zahrivacka:downdog+plank_30s+push-up_10x+relax++3x
 // https://stackoverflow.com/questions/26088849/url-fragment-allowed-characters
 export const serializeWorkout = (workout: Workout) =>
   `${serialize(workout.name)}:${serialize(workout.exercises)}`;
 
-export const deserializeWorkout = (s: string): Option<Workout> => {
-  const chunks = s.split(':');
-  if (chunks.length !== 2) return option.none;
-  const name = deserialize(chunks[0]);
-  const exercises = deserialize(chunks[1]);
-  if (!name || !exercises) return option.none;
-  return pipe(
+export const deserializeWorkout: (s: string) => Option<Workout> = flow(
+  option.some,
+  option.map(string.split(':')),
+  option.filter((a) => a.length === 2),
+  option.map(readonlyArray.map(deserialize)),
+  option.filter(readonlyArray.every(predicate.not(string.isEmpty))),
+  option.chainEitherK(([name, exercises]) =>
     sequenceT(either.Applicative)(
       String32.decode(name),
       String1024.decode(exercises),
     ),
-    either.map(([name, exercises]) => createWorkout(name, exercises)),
-    option.fromEither,
-  );
-};
+  ),
+  option.map(([name, exercises]) => createWorkout(name, exercises)),
+);

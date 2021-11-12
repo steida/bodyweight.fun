@@ -138,7 +138,7 @@ stretching 1m
 jumping jacks 1m
 push-ups 20x
 sit-ups 20x
-relax
+relax 😌
 plank 30s
 
 2x`.trim(),

@@ -41,9 +41,7 @@ const DemandReloadModal = () => {
 };
 
 export const Layout: FC = ({ children }) => {
-  const t = useTheme();
   const intl = useIntl();
-
   const storageGetError = useAppState((s) => s.storageGetError);
 
   return (
@@ -58,11 +56,7 @@ export const Layout: FC = ({ children }) => {
           <DemandReloadModal />
         </>
       ) : (
-        <View
-          style={[t.justifyCenter, t.itemsCenter, t.viewportHeightMin100, t.ph]}
-        >
-          {children}
-        </View>
+        children
       )}
     </SafeAreaView>
   );

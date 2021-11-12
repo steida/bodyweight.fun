@@ -360,4 +360,10 @@ export const createTheme = (colorScheme: ColorSchemeName) =>
       // @ts-expect-error RNfW
       outlineStyle: 'none',
     },
+
+    centeredViewportHeightMin100: {
+      justifyContent: 'center',
+      alignItems: 'center',
+      minHeight: '100vh',
+    },
   });

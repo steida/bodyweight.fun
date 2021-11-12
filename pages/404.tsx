@@ -1,5 +1,5 @@
 import { useIntl } from 'react-intl';
-import { Text } from 'react-native';
+import { Text, View } from 'react-native';
 import { Heading } from '../components/elements/Heading';
 import { Link } from '../components/elements/Link';
 import { Paragraph } from '../components/elements/Paragraph';
@@ -15,7 +15,7 @@ const Page404 = () => {
   });
 
   return (
-    <>
+    <View style={t.centeredViewportHeightMin100}>
       <Title title={title} />
       <Stack>
         <Heading style={[t.textLg, t.color]}>{title}</Heading>
@@ -33,7 +33,7 @@ const Page404 = () => {
           </Link>
         </Paragraph>
       </Stack>
-    </>
+    </View>
   );
 };
 

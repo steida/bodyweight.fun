@@ -17,7 +17,7 @@ export const Route = sum('pathname')({
   '/': struct({ pathname: literal('/') }),
   '/workout/[id]': WorkoutRoute,
   '/workout/[id]/play': WorkoutPlayRoute,
-  // '/blog': struct({ pathname: literal('/blog') }),
+  '/blog': struct({ pathname: literal('/blog') }),
 });
 
 export type Route = TypeOf<typeof Route>;

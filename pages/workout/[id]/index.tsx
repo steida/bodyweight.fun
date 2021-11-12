@@ -204,18 +204,20 @@ const WorkoutForm: FC<{ workout: Workout }> = ({ workout }) => {
   const shadowColor = stc(workout.name);
 
   return (
-    <View style={[t.pv, t.phLg]}>
-      <InsetBorder
-        style={[t.shadow, t.bgColor, { shadowColor }]}
-        slowTransition={true}
-      />
-      <View style={[t.width13, t.mh, t.mb]}>
-        <Stack>
-          <WorkoutNameField id={workout.id} value={workout.name} />
-          <WorkoutExercisesField id={workout.id} value={workout.exercises} />
-        </Stack>
+    <View style={t.centeredViewportHeightMin100}>
+      <View style={[t.pv, t.ph]}>
+        <InsetBorder
+          style={[t.shadow, t.bgColor, { shadowColor }]}
+          slowTransition={true}
+        />
+        <View style={[t.width13, t.mh, t.mb]}>
+          <Stack>
+            <WorkoutNameField id={workout.id} value={workout.name} />
+            <WorkoutExercisesField id={workout.id} value={workout.exercises} />
+          </Stack>
+        </View>
+        <Buttons id={workout.id} workout={workout} />
       </View>
-      <Buttons id={workout.id} workout={workout} />
     </View>
   );
 };

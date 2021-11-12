@@ -202,7 +202,7 @@ const WorkoutPlay: FC<{ id: NanoID; exercises: Exercises }> = ({
   };
 
   return (
-    <>
+    <View style={t.centeredViewportHeightMin100}>
       <Title title={exercise.value.name} />
       <View style={[t.absolute, t.inset, t.overflowHidden]}>
         <AnimatedView
@@ -246,7 +246,7 @@ const WorkoutPlay: FC<{ id: NanoID; exercises: Exercises }> = ({
         // @ts-expect-error RNfW
         onKeyDown={handleKeyDown}
       />
-    </>
+    </View>
   );
 };
 

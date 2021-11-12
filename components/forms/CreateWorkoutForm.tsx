@@ -5,14 +5,14 @@ import { useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { View } from 'react-native';
 import { emptyString1024, MaxLength, String32 } from '../../codecs/branded';
-import { PrimaryButton } from '../buttons/PrimaryButton';
-import { TextField, TextFieldRef } from '../fields/TextField';
 import { useAppDispatch } from '../../contexts/AppStateContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { createWorkout } from '../../utils/createWorkout';
 import { OutlineButton } from '../buttons/OutlineButton';
+import { PrimaryButton } from '../buttons/PrimaryButton';
+import { TextField, TextFieldRef } from '../fields/TextField';
 import { Modal } from '../Modal';
 import { Stack } from '../Stack';
-import { createWorkout } from '../../utils/createWorkout';
 
 const CreateWorkoutFormModal = ({
   onRequestClose,
@@ -80,7 +80,6 @@ const CreateWorkoutFormModal = ({
 
 export const CreateWorkoutForm = () => {
   const intl = useIntl();
-  const t = useTheme();
   const [isEdited, setIsEdited] = useState(false);
 
   const handleCreateWorkoutPress = () => {
@@ -93,7 +92,7 @@ export const CreateWorkoutForm = () => {
   };
 
   return (
-    <View style={t.pv}>
+    <>
       <PrimaryButton
         title={intl.formatMessage({ defaultMessage: 'Create Workout' })}
         onPress={handleCreateWorkoutPress}
@@ -101,6 +100,6 @@ export const CreateWorkoutForm = () => {
       {isEdited && (
         <CreateWorkoutFormModal onRequestClose={handleRequestClose} />
       )}
-    </View>
+    </>
   );
 };

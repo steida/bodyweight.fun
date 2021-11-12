@@ -21,18 +21,21 @@ const Home = () => {
       <ViewHiddenUntilStorageIsRehydrated
         style={t.centeredViewportHeightMin100}
       >
-        <WorkoutsList />
-        <View style={[t.flexRow, t.justifyCenter, t.pt, t.pbSm]}>
-          <CreateWorkoutForm />
-        </View>
-        <View style={[t.flexRow, t.justifyCenter]}>
-          <Link href={{ pathname: '/blog' }}>
-            {({ hovered }) => (
-              <Text style={[t.text, hovered ? t.color : t.colorGray]}>
-                Blog
-              </Text>
-            )}
-          </Link>
+        {/* Ensure the same width for all children. */}
+        <View>
+          <WorkoutsList />
+          <View style={[t.flexRow, t.justifyCenter, t.pt, t.pbSm]}>
+            <CreateWorkoutForm />
+          </View>
+          <View style={[t.flexRow, t.justifyCenter]}>
+            <Link href={{ pathname: '/blog' }}>
+              {({ hovered }) => (
+                <Text style={[t.text, hovered ? t.color : t.colorGray]}>
+                  Blog
+                </Text>
+              )}
+            </Link>
+          </View>
         </View>
       </ViewHiddenUntilStorageIsRehydrated>
     </>
